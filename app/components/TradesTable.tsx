@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';  // ลบ useEffect ออก
 
 interface Trade {
   id: string;
@@ -31,45 +31,15 @@ interface TradesTableProps {
 }
 
 export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
-  // ถ้าจะให้ Dashboard เป็นคนส่ง trades มา → ลบ useState trades เดิมออก:
-  // const [trades, setTrades] = useState<Trade[]>([]);
-
   const [loading, setLoading] = useState(false);
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [refreshing, setRefreshing] = useState(false);
   const itemsPerPage = 5;
 
-  useEffect(() => {
-    fetchTrades();
-    const interval = setInterval(fetchTrades, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchTrades = async () => {
-    try {
-      const response = await fetch(`/api/get-trades`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setTrades(result.trades);
-      }
-    } catch (error) {
-      console.error('Error fetching trades:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchTrades();
-    setRefreshing(false);
-    setTimeout(() => setMessage(''), 2000);
-  };
+  // ❌ ลบ useEffect, fetchTrades, handleRefresh ทั้งหมดออก
 
   const handleCellClick = (tradeId: string, field: string, currentValue: string) => {
     setEditingCell({ id: tradeId, field });
@@ -92,7 +62,8 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
 
       const result = await response.json();
       if (result.success) {
-        setTrades(trades.map((t) => (t.id === tradeId ? { ...t, ...result.trade } : t)));
+        // ✅ เรียก onRefresh แทน setTrades
+        await onRefresh();
         setMessage('✅ บันทึกสำเร็จ');
         setTimeout(() => setMessage(''), 3000);
       } else {
@@ -114,7 +85,8 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       const response = await fetch(`/api/delete-trade?id=${tradeId}`, { method: 'DELETE' });
       const result = await response.json();
       if (result.success) {
-        setTrades(trades.filter((t) => t.id !== tradeId));
+        // ✅ เรียก onRefresh แทน setTrades
+        await onRefresh();
         setMessage('✅ ลบสำเร็จ');
         setTimeout(() => setMessage(''), 3000);
       } else {
