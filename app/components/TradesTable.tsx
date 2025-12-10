@@ -31,7 +31,9 @@ interface TradesTableProps {
 }
 
 export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
-  const [trades, setTrades] = useState<Trade[]>([]);
+  // ถ้าจะให้ Dashboard เป็นคนส่ง trades มา → ลบ useState trades เดิมออก:
+  // const [trades, setTrades] = useState<Trade[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -46,11 +48,6 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
     const interval = setInterval(fetchTrades, 30000);
     return () => clearInterval(interval);
   }, []);
-
-  interface TradesTableProps {
-    trades: Trade[];              // ใช้ type Trade แบบเดียวกับใน dashboard
-    onRefresh: () => Promise<void> | void;
-  }
 
   const fetchTrades = async () => {
     try {
