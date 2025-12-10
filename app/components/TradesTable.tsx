@@ -25,9 +25,14 @@ interface Trade {
   notes: string;
 }
 
+interface TradesTableProps {
+  trades: Trade[];
+  onRefresh: () => Promise<void> | void;
+}
+
 export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
