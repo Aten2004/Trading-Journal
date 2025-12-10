@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import TradesTable from '../components/TradesTable';
 import Navbar from '../components/Navbar';
+import TradesTable from '@/components/TradesTable';
 
 interface Trade {
   id: string;
