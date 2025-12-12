@@ -4,8 +4,8 @@ import { useState } from 'react';
 
 interface Trade {
   id: string;
-  open_date: string;   // เปลี่ยนจาก date เป็น open_date
-  close_date: string;  // เพิ่ม close_date
+  open_date: string;
+  close_date: string;
   open_time: string;
   close_time: string;
   symbol: string;
@@ -340,7 +340,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
                         </div>
                       </td>
                       <td className="py-2 px-4 bg-blue-500/5">
-                        <div className="text-slate-400 text-xs">
+                        <div className="text-slate-400 text-xs whitespace-nowrap">
                           {trade.holding_time && trade.holding_time.trim() !== '' 
                             ? trade.holding_time 
                             : '-'}
