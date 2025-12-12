@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGoogleSheet, calculateRR, calculateHoldingTime } from '@/lib/googleSheets';
+import { getGoogleSheet, calculateRR, calculateHoldingTime, calculatePnlPct, calculatePnl } from '@/lib/googleSheets'; // ✅ เพิ่ม calculatePnl
 
 export async function PUT(request: NextRequest) {
   try {
@@ -8,52 +8,50 @@ export async function PUT(request: NextRequest) {
 
     const sheet = await getGoogleSheet();
     const rows = await sheet.getRows();
-
     const rowToUpdate = rows.find((row) => row.get('id') === id);
 
     if (!rowToUpdate) {
-      return NextResponse.json(
-        { success: false, error: 'Trade not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Trade not found' }, { status: 404 });
     }
 
-    // คำนวณ Risk/Reward Ratio ใหม่
+    const entryPrice = parseFloat(updateData.entry_price);
+    const exitPrice = parseFloat(updateData.exit_price);
+    const positionSize = parseFloat(updateData.position_size);
+    const sl = parseFloat(updateData.sl);
+    const tp = parseFloat(updateData.tp);
+
+    // คำนวณ R:R
     let rr = updateData.risk_reward_ratio || '';
-    if (updateData.entry_price && updateData.sl && updateData.tp && updateData.direction) {
+    if (!isNaN(entryPrice) && !isNaN(sl) && !isNaN(tp) && updateData.direction) {
       try {
-        const entryPrice = parseFloat(updateData.entry_price);
-        const sl = parseFloat(updateData.sl);
-        const tp = parseFloat(updateData.tp);
-        
-        if (!isNaN(entryPrice) && !isNaN(sl) && !isNaN(tp)) {
-          const rrValue = calculateRR(entryPrice, sl, tp, updateData.direction);
-          if (!isNaN(rrValue) && isFinite(rrValue)) {
-            rr = rrValue.toFixed(2);
-          }
-        }
-      } catch (error) {
-        console.error('Error calculating R:R:', error);
-      }
+        const rrValue = calculateRR(entryPrice, sl, tp, updateData.direction);
+        if (!isNaN(rrValue) && isFinite(rrValue)) rr = rrValue.toFixed(2);
+      } catch (e) { console.error(e); }
     }
 
-    // คำนวณ Holding Time ใหม่
+    // คำนวณ P&L Amount และ % ใหม่
+    let pnlAmount = updateData.pnl || '';
+    let pnlPct = updateData.pnl_pct || '';
+    
+    if (!isNaN(entryPrice) && !isNaN(exitPrice) && updateData.direction) {
+        pnlPct = calculatePnlPct(entryPrice, exitPrice, updateData.direction);
+        
+        if (!isNaN(positionSize)) {
+            pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, updateData.direction);
+        }
+    }
+
+    // คำนวณ Holding Time
     let holdingTime = updateData.holding_time || '';
     if (updateData.open_date && updateData.open_time && updateData.close_time) {
-      try {
-        // ใช้ close_date ที่ส่งมา หรือถ้าไม่มีให้ใช้ open_date
         const closeDate = updateData.close_date || updateData.open_date;
-
         holdingTime = calculateHoldingTime(
           `${updateData.open_date}T${updateData.open_time}`,
           `${closeDate}T${updateData.close_time}`
         );
-      } catch (error) {
-        console.error('Error calculating holding time:', error);
-      }
     }
 
-    // อัพเดทข้อมูลในแต่ละคอลัมน์ (ให้ตรงกับชื่อคอลัมน์ใหม่)
+    // อัพเดทข้อมูลลง Sheet
     rowToUpdate.set('open_date', updateData.open_date || '');
     rowToUpdate.set('close_date', updateData.close_date || '');
     rowToUpdate.set('open_time', updateData.open_time || '');
@@ -65,8 +63,8 @@ export async function PUT(request: NextRequest) {
     rowToUpdate.set('sl', updateData.sl || '');
     rowToUpdate.set('tp', updateData.tp || '');
     rowToUpdate.set('exit_price', updateData.exit_price || '');
-    rowToUpdate.set('pnl', updateData.pnl || '');
-    rowToUpdate.set('pnl_pct', updateData.pnl_pct || '');
+    rowToUpdate.set('pnl', pnlAmount);
+    rowToUpdate.set('pnl_pct', pnlPct);
     rowToUpdate.set('strategy', updateData.strategy || '');
     rowToUpdate.set('risk_reward_ratio', rr);
     rowToUpdate.set('holding_time', holdingTime);
@@ -83,20 +81,15 @@ export async function PUT(request: NextRequest) {
       trade: {
         id,
         ...updateData,
+        pnl: pnlAmount,
+        pnl_pct: pnlPct,
         risk_reward_ratio: rr,
         holding_time: holdingTime,
       }
     });
 
   } catch (error) {
-    console.error('Error updating trade:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to update trade',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
   }
 }

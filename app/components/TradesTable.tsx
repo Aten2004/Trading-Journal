@@ -41,6 +41,9 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
   const itemsPerPage = 5;
 
   const handleCellClick = (tradeId: string, field: string, currentValue: string) => {
+    // ห้ามแก้ไขช่องที่คำนวณอัตโนมัติ
+    if (['pnl', 'pnl_pct', 'risk_reward_ratio', 'holding_time'].includes(field)) return;
+
     setEditingCell({ id: tradeId, field });
     setEditValue(currentValue);
   };
@@ -104,7 +107,6 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
     }
   };
 
-  // ฟังก์ชันตัดข้อความ
   const truncateText = (text: string, maxLength: number = 30) => {
     if (!text) return '-';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
@@ -226,14 +228,35 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       );
     }
 
-    // แสดง Notes แบบตัดคำ
     const displayValue = field === 'notes' ? truncateText(value, 30) : (value || '-');
+
+    // ✅ แสดงผลช่อง P&L Amount (Auto Calculated) + สี
+    if (field === 'pnl' && value) {
+        const numValue = parseFloat(value);
+        const colorClass = numValue > 0 ? 'text-green-400 font-bold' : numValue < 0 ? 'text-red-400 font-bold' : 'text-slate-300';
+        return (
+            <div className={`cursor-default ${colorClass} whitespace-nowrap`}>
+                {numValue > 0 ? '+' : ''}{parseFloat(value).toFixed(2)} USD
+            </div>
+        );
+    }
+
+    // ✅ แสดงผลช่อง P&L % (Auto Calculated) + สี
+    if (field === 'pnl_pct' && value) {
+        const numValue = parseFloat(value);
+        const colorClass = numValue > 0 ? 'text-green-400' : numValue < 0 ? 'text-red-400' : 'text-slate-300';
+        return (
+            <div className={`cursor-default ${colorClass} whitespace-nowrap`}>
+                {numValue > 0 ? '+' : ''}{parseFloat(value).toFixed(2)}%
+            </div>
+        );
+    }
 
     return (
       <div
         onClick={() => handleCellClick(trade.id, field, value)}
         className="cursor-pointer hover:bg-slate-700/50 rounded px-2 py-1 min-h-[32px] flex items-center"
-        title={field === 'notes' ? value : undefined} // แสดง tooltip เมื่อ hover
+        title={field === 'notes' ? value : undefined}
       >
         {displayValue === '-' ? <span className="text-slate-500">-</span> : displayValue}
       </div>
@@ -293,20 +316,20 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-700 bg-slate-900/50">
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">#</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">No.</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Symbol</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Open Date</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Close Date</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Open Time</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Close Time</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Symbol</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Dir</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Pos</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Entry</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Exit</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">SL</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">TP</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">P&L</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">P&L %</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">P&L</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">P&L %</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">R:R</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">Time</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Strategy</th>
@@ -321,19 +344,23 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
                   {currentTrades.map((trade, index) => (
                     <tr key={trade.id} className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors">
                       <td className="py-2 px-4 text-slate-400 text-sm">{trades.length - (startIndex + index)}</td>
+                      <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'symbol')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'open_date')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'close_date')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'open_time')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'close_time')}</td>
-                      <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'symbol')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'direction')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'position_size')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'entry_price')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'exit_price')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'sl')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'tp')}</td>
-                      <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'pnl')}</td>
-                      <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'pnl_pct')}</td>
+                      <td className="py-2 px-4 bg-blue-500/5 text-sm font-medium">
+                        {renderEditableCell(trade, 'pnl')}
+                      </td>
+                      <td className="py-2 px-4 bg-blue-500/5 text-sm font-medium">
+                        {renderEditableCell(trade, 'pnl_pct')}
+                      </td>
                       <td className="py-2 px-4 bg-blue-500/5">
                         <div className="text-slate-400 text-xs">
                           {trade.risk_reward_ratio ? `${parseFloat(trade.risk_reward_ratio).toFixed(1)}:1` : '-'}
@@ -411,7 +438,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       </div>
 
       <div className="text-slate-400 text-sm text-center">
-        {trades.length} เทรด • แสดงหน้า {currentPage}/{totalPages} • Auto-refresh ทุก 30 วินาที
+        {trades.length} เทรด • แสดงหน้า {currentPage}/{totalPages}
       </div>
     </div>
   );

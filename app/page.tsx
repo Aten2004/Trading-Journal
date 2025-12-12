@@ -281,37 +281,6 @@ export default function Home() {
                     />
                 </div>
 
-                {/* P&L */}
-                <div>
-                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                    กำไร/ขาดทุน | P&L <span className="text-slate-500">(optional)</span>
-                    </label>
-                    <input
-                    type="number"
-                    step="0.01"
-                    name="pnl"
-                    value={formData.pnl}
-                    onChange={handleChange}
-                    placeholder="เช่น 100, -50"
-                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                    />
-                </div>
-
-                {/* P&L % */}
-                <div>
-                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                    กำไร/ขาดทุน % | P&L % <span className="text-slate-500">(optional)</span>
-                    </label>
-                    <input
-                    type="number"
-                    step="0.01"
-                    name="pnl_pct"
-                    value={formData.pnl_pct}
-                    onChange={handleChange}
-                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                    />
-                </div>
-
                 {/* Strategy */}
                 <div>
                     <label className="block text-slate-300 mb-2 text-sm sm:text-base">
@@ -403,7 +372,7 @@ export default function Home() {
 
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4 mb-6">
               <p className="text-blue-300 text-xs sm:text-sm">
-                💡 <strong>Risk/Reward Ratio</strong> และ <strong>Holding Time</strong> จะถูกคำนวณอัตโนมัติ
+                💡 <strong>P&L</strong>, <strong>P&L%</strong>, <strong>Risk/Reward Ratio</strong> และ <strong>Holding Time</strong> จะถูกคำนวณอัตโนมัติ
               </p>
             </div>
 

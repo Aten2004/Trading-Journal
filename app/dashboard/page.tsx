@@ -305,8 +305,8 @@ export default function Dashboard() {
       <Navbar />
 
       <div className="max-w-[98%] mx-auto p-4 sm:p-6 lg:p-8">
-        {/* Dashboard Title */}
-        <div className="mb-6 sm:mb-8 flex items-center justify-between gap-4">
+       {/* Header (Responsive: Stack on mobile, Row on desktop) */}
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">Trading Dashboard</h2>
             <p className="text-slate-400 text-sm sm:text-base">
@@ -317,9 +317,9 @@ export default function Dashboard() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium
+            className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm sm:text-base font-medium
                       bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800
-                      text-white border border-slate-500"
+                      text-white border border-slate-500 transition-colors"
           >
             {refreshing ? 'กำลังรีเฟรช...' : 'รีเฟรชข้อมูล'}
           </button>
@@ -403,10 +403,10 @@ export default function Dashboard() {
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
               <div className="text-slate-400 text-sm mb-1">Total P&L</div>
               <div className={`text-3xl font-bold ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {totalPnL >= 0 ? '+' : ''}{totalPnLFormatted}
+                {totalPnL >= 0 ? '+' : ''}{totalPnLFormatted} USD
               </div>
               <div className="text-xs text-slate-500 mt-2">
-                Avg Win: +{avgWin} · Avg Loss: {avgLoss}
+                Avg Win: +{avgWin} USD · Avg Loss: {avgLoss} USD
               </div>
             </div>
 
