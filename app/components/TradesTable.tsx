@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';  // ลบ useEffect ออก
+import { useState } from 'react';
 
 interface Trade {
   id: string;
-  date: string;
+  open_date: string;   // เปลี่ยนจาก date เป็น open_date
+  close_date: string;  // เพิ่ม close_date
   open_time: string;
   close_time: string;
   symbol: string;
@@ -39,8 +40,6 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // ❌ ลบ useEffect, fetchTrades, handleRefresh ทั้งหมดออก
-
   const handleCellClick = (tradeId: string, field: string, currentValue: string) => {
     setEditingCell({ id: tradeId, field });
     setEditValue(currentValue);
@@ -62,7 +61,6 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
 
       const result = await response.json();
       if (result.success) {
-        // ✅ เรียก onRefresh แทน setTrades
         await onRefresh();
         setMessage('✅ บันทึกสำเร็จ');
         setTimeout(() => setMessage(''), 3000);
@@ -85,7 +83,6 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       const response = await fetch(`/api/delete-trade?id=${tradeId}`, { method: 'DELETE' });
       const result = await response.json();
       if (result.success) {
-        // ✅ เรียก onRefresh แทน setTrades
         await onRefresh();
         setMessage('✅ ลบสำเร็จ');
         setTimeout(() => setMessage(''), 3000);
@@ -217,7 +214,8 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
 
       return (
         <input
-          type={field === 'date' ? 'date' : field.includes('time') ? 'time' : 'text'}
+          // เช็คว่าเป็น field วันที่หรือเวลาหรือไม่
+          type={field.includes('date') ? 'date' : field.includes('time') ? 'time' : 'text'}
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={() => handleSave(trade.id, field)}
@@ -296,12 +294,13 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
                 <thead>
                   <tr className="border-b border-slate-700 bg-slate-900/50">
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">#</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">วันที่</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">เวลาเปิด</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">เวลาปิด</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Open Date</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Close Date</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Open Time</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Close Time</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Symbol</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Direction</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Position</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Dir</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Pos</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Entry</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Exit</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">SL</th>
@@ -309,20 +308,21 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">P&L</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">P&L %</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">R:R</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">Holding</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">Time</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Strategy</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Emotion</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Emo</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Mistake</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Plan?</th>
                     <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm min-w-[200px]">Notes</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">ลบ</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Del</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentTrades.map((trade, index) => (
                     <tr key={trade.id} className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors">
                       <td className="py-2 px-4 text-slate-400 text-sm">{trades.length - (startIndex + index)}</td>
-                      <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'date')}</td>
+                      <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'open_date')}</td>
+                      <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'close_date')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'open_time')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'close_time')}</td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'symbol')}</td>

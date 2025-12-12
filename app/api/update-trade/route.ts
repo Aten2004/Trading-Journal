@@ -6,12 +6,9 @@ export async function PUT(request: NextRequest) {
     const data = await request.json();
     const { id, ...updateData } = data;
 
-    console.log('Updating trade:', id);
-
     const sheet = await getGoogleSheet();
     const rows = await sheet.getRows();
 
-    // หาแถวที่ต้องการอัพเดท
     const rowToUpdate = rows.find((row) => row.get('id') === id);
 
     if (!rowToUpdate) {
@@ -21,7 +18,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // คำนวณ Risk/Reward Ratio ใหม่ (ถ้ามีข้อมูลครบ)
+    // คำนวณ Risk/Reward Ratio ใหม่
     let rr = updateData.risk_reward_ratio || '';
     if (updateData.entry_price && updateData.sl && updateData.tp && updateData.direction) {
       try {
@@ -40,21 +37,25 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // คำนวณ Holding Time ใหม่ (ถ้ามีข้อมูลครบ)
+    // คำนวณ Holding Time ใหม่
     let holdingTime = updateData.holding_time || '';
-    if (updateData.date && updateData.open_time && updateData.close_time) {
+    if (updateData.open_date && updateData.open_time && updateData.close_time) {
       try {
+        // ใช้ close_date ที่ส่งมา หรือถ้าไม่มีให้ใช้ open_date
+        const closeDate = updateData.close_date || updateData.open_date;
+
         holdingTime = calculateHoldingTime(
-          `${updateData.date}T${updateData.open_time}`,
-          `${updateData.date}T${updateData.close_time}`
+          `${updateData.open_date}T${updateData.open_time}`,
+          `${closeDate}T${updateData.close_time}`
         );
       } catch (error) {
         console.error('Error calculating holding time:', error);
       }
     }
 
-    // อัพเดทข้อมูลในแต่ละคอลัมน์
-    rowToUpdate.set('date', updateData.date || '');
+    // อัพเดทข้อมูลในแต่ละคอลัมน์ (ให้ตรงกับชื่อคอลัมน์ใหม่)
+    rowToUpdate.set('open_date', updateData.open_date || '');
+    rowToUpdate.set('close_date', updateData.close_date || '');
     rowToUpdate.set('open_time', updateData.open_time || '');
     rowToUpdate.set('close_time', updateData.close_time || '');
     rowToUpdate.set('symbol', updateData.symbol || '');
@@ -74,10 +75,7 @@ export async function PUT(request: NextRequest) {
     rowToUpdate.set('followed_plan', updateData.followed_plan || 'false');
     rowToUpdate.set('notes', updateData.notes || '');
 
-    // บันทึกการเปลี่ยนแปลงไปยัง Google Sheets
     await rowToUpdate.save();
-
-    console.log('✅ Trade updated successfully');
 
     return NextResponse.json({ 
       success: true, 

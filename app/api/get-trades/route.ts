@@ -6,9 +6,11 @@ export async function GET() {
     const sheet = await getGoogleSheet();
     const rows = await sheet.getRows();
     
+    // Map ข้อมูลให้ตรงกับ Header ใหม่ใน Google Sheets
     const trades = rows.map((row) => ({
       id: row.get('id'),
-      date: row.get('date'),
+      open_date: row.get('open_date'),  
+      close_date: row.get('close_date'), 
       open_time: row.get('open_time'),
       close_time: row.get('close_time'),
       symbol: row.get('symbol'),

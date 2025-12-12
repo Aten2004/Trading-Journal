@@ -7,9 +7,11 @@ import {
 import TradesTable from '../components/TradesTable';
 import Navbar from '../components/Navbar';
 
+// ✅ แก้ไข Interface ให้ตรงกับ Google Sheets (open_date, close_date)
 interface Trade {
   id: string;
-  date: string;
+  open_date: string;  // เปลี่ยนจาก date เป็น open_date
+  close_date: string; // เพิ่ม close_date
   open_time: string;
   close_time: string;
   symbol: string;
@@ -171,7 +173,7 @@ export default function Dashboard() {
     const pnl = parseFloat(t.pnl || '0');
     if (isNaN(hour) || isNaN(entry)) return acc;
 
-    const found = acc.find(d => d.hour === hour);
+    const found = acc.find((d: any) => d.hour === hour);
     if (!found) {
       acc.push({ hour, trades: 1, sumEntry: entry, sumPnl: pnl });
     } else {
@@ -181,12 +183,12 @@ export default function Dashboard() {
     }
     return acc;
   }, [])
-  .map(d => ({
+  .map((d: any) => ({
     hourLabel: `${d.hour.toString().padStart(2, '0')}:00`,
     avgEntry: d.sumEntry / d.trades,
     avgPnl: d.sumPnl / d.trades,
   }))
-  .sort((a, b) => a.hourLabel.localeCompare(b.hourLabel));
+  .sort((a: any, b: any) => a.hourLabel.localeCompare(b.hourLabel));
 
 
   // Plan Adherence Rate
@@ -204,7 +206,7 @@ export default function Dashboard() {
     ? Object.entries(mistakeCount).sort((a, b) => b[1] - a[1])[0]
     : null;
 
-  // ✅ ฟังก์ชันคำนวณกลยุทธ์ที่ดีที่สุด (แก้ไขแล้ว)
+  // ✅ ฟังก์ชันคำนวณกลยุทธ์ที่ดีที่สุด
   const getBestStrategy = () => {
     const strategies = trades.reduce((acc: any, trade) => {
       const strategy = trade.strategy || 'Unknown';

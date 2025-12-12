@@ -5,7 +5,8 @@ import Navbar from './components/Navbar';
 
 export default function Home() {
   const [formData, setFormData] = useState({
-    date: '',
+    open_date: '', 
+    close_date: '', 
     open_time: '',
     close_time: '',
     symbol: 'XAUUSD',
@@ -44,7 +45,8 @@ export default function Home() {
       if (result.success) {
         setMessage('✅ บันทึกเทรดสำเร็จ!');
         setFormData({
-          date: '',
+          open_date: '',
+          close_date: '',
           open_time: '',
           close_time: '',
           symbol: 'XAUUSD',
@@ -103,14 +105,12 @@ export default function Home() {
           )}
 
           <form onSubmit={handleSubmit} className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 lg:p-8 shadow-2xl border border-slate-700">
-            {/* ข้อมูลการเทรด | Trade Details */}
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">
               ข้อมูลการเทรด | Trade Details
             </h2>
 
-            {/* แถวที่ 1: Symbol + Date */}
+            {/* แถวที่ 1: Symbol + Open Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              {/* Symbol ก่อน */}
               <div>
                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                   สินทรัพย์ | Symbol <span className="text-slate-500">(optional)</span>
@@ -129,22 +129,21 @@ export default function Home() {
                 </select>
               </div>
 
-              {/* Date ต่อมา */}
               <div>
                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  วันที่ | Date <span className="text-slate-500">(optional)</span>
+                  วันที่เปิด | Open Date <span className="text-slate-500">(optional)</span>
                 </label>
                 <input
                   type="date"
-                  name="date"
-                  value={formData.date}
+                  name="open_date"
+                  value={formData.open_date}
                   onChange={handleChange}
                   className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
                 />
               </div>
             </div>
 
-            {/* แถวที่ 2: เวลาเปิด + เวลาปิด */}
+            {/* แถวที่ 2: Open Time + Close Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <div>
                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
@@ -161,6 +160,22 @@ export default function Home() {
 
               <div>
                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                  วันที่ปิด | Close Date <span className="text-slate-500 text-xs">(ว่าง = วันเดียวกับเปิด)</span>
+                </label>
+                <input
+                  type="date"
+                  name="close_date"
+                  value={formData.close_date}
+                  onChange={handleChange}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* แถวที่ 3: Close Time + Direction */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                   เวลาที่ปิด | Close Time <span className="text-slate-500">(optional)</span>
                 </label>
                 <input
@@ -172,7 +187,6 @@ export default function Home() {
                 />
               </div>
 
-              {/* Direction */}
               <div>
                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                   ทิศทาง | Direction <span className="text-slate-500">(optional)</span>
@@ -187,132 +201,135 @@ export default function Home() {
                   <option>Sell</option>
                 </select>
               </div>
+            </div>
 
-              {/* Position Size */}
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  ขนาดออเดอร์ | Position Size (Troy Oz) <span className="text-slate-500">(optional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="position_size"
-                  value={formData.position_size}
-                  onChange={handleChange}
-                  placeholder="เช่น 1, 0.5, 2"
-                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
+            {/* ส่วนที่เหลือของฟอร์ม (Position, Prices, P&L, Strategy...) เหมือนเดิม */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                {/* Position Size */}
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    ขนาดออเดอร์ | Position Size (Troy Oz) <span className="text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                    type="number"
+                    step="0.01"
+                    name="position_size"
+                    value={formData.position_size}
+                    onChange={handleChange}
+                    placeholder="เช่น 1, 0.5, 2"
+                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                    />
+                </div>
 
-              {/* Entry Price */}
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  ราคาเข้า | Entry Price <span className="text-slate-500">(optional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="entry_price"
-                  value={formData.entry_price}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
+                {/* Entry Price */}
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    ราคาเข้า | Entry Price <span className="text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                    type="number"
+                    step="0.01"
+                    name="entry_price"
+                    value={formData.entry_price}
+                    onChange={handleChange}
+                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                    />
+                </div>
 
-              {/* Exit Price */}
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  ราคาออก | Exit Price <span className="text-slate-500">(optional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="exit_price"
-                  value={formData.exit_price}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
+                {/* Exit Price */}
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    ราคาออก | Exit Price <span className="text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                    type="number"
+                    step="0.01"
+                    name="exit_price"
+                    value={formData.exit_price}
+                    onChange={handleChange}
+                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                    />
+                </div>
 
-              {/* Stop Loss */}
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  จุดตัดขาดทุน | Stop Loss <span className="text-slate-500">(optional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="sl"
-                  value={formData.sl}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
+                {/* Stop Loss */}
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    จุดตัดขาดทุน | Stop Loss <span className="text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                    type="number"
+                    step="0.01"
+                    name="sl"
+                    value={formData.sl}
+                    onChange={handleChange}
+                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                    />
+                </div>
 
-              {/* Take Profit */}
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  จุดทำกำไร | Take Profit <span className="text-slate-500">(optional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="tp"
-                  value={formData.tp}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
+                {/* Take Profit */}
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    จุดทำกำไร | Take Profit <span className="text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                    type="number"
+                    step="0.01"
+                    name="tp"
+                    value={formData.tp}
+                    onChange={handleChange}
+                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                    />
+                </div>
 
-              {/* P&L */}
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  กำไร/ขาดทุน | P&L <span className="text-slate-500">(optional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="pnl"
-                  value={formData.pnl}
-                  onChange={handleChange}
-                  placeholder="เช่น 100, -50"
-                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
+                {/* P&L */}
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    กำไร/ขาดทุน | P&L <span className="text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                    type="number"
+                    step="0.01"
+                    name="pnl"
+                    value={formData.pnl}
+                    onChange={handleChange}
+                    placeholder="เช่น 100, -50"
+                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                    />
+                </div>
 
-              {/* P&L % */}
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  กำไร/ขาดทุน % | P&L % <span className="text-slate-500">(optional)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="pnl_pct"
-                  value={formData.pnl_pct}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
+                {/* P&L % */}
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    กำไร/ขาดทุน % | P&L % <span className="text-slate-500">(optional)</span>
+                    </label>
+                    <input
+                    type="number"
+                    step="0.01"
+                    name="pnl_pct"
+                    value={formData.pnl_pct}
+                    onChange={handleChange}
+                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                    />
+                </div>
 
-              {/* Strategy */}
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  กลยุทธ์ | Strategy <span className="text-slate-500">(optional)</span>
-                </label>
-                <select
-                  name="strategy"
-                  value={formData.strategy}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
-                >
-                  <option>Trend Following</option>
-                  <option>Grid</option>
-                  <option>Scalping</option>
-                  <option>Breakout</option>
-                  <option>Range Trading</option>
-                </select>
-              </div>
+                {/* Strategy */}
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    กลยุทธ์ | Strategy <span className="text-slate-500">(optional)</span>
+                    </label>
+                    <select
+                    name="strategy"
+                    value={formData.strategy}
+                    onChange={handleChange}
+                    className="w-full bg-slate-700 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base border border-slate-600 focus:border-blue-500 focus:outline-none"
+                    >
+                    <option>Trend Following</option>
+                    <option>Grid</option>
+                    <option>Scalping</option>
+                    <option>Breakout</option>
+                    <option>Range Trading</option>
+                    </select>
+                </div>
             </div>
 
             {/* จิตวิทยาและวินัย */}
@@ -386,7 +403,7 @@ export default function Home() {
 
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4 mb-6">
               <p className="text-blue-300 text-xs sm:text-sm">
-                💡 <strong>Risk/Reward Ratio</strong> และ <strong>Holding Time</strong> จะถูกคำนวณอัตโนมัติ (ถ้ามีข้อมูลครบ)
+                💡 <strong>Risk/Reward Ratio</strong> และ <strong>Holding Time</strong> จะถูกคำนวณอัตโนมัติ
               </p>
             </div>
 

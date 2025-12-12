@@ -5,12 +5,9 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     
-    // Log ข้อมูลที่ได้รับเพื่อ debug
-    console.log('Received data:', data);
-    
     const sheet = await getGoogleSheet();
 
-    // คำนวณ Risk/Reward Ratio (เฉพาะถ้ามีข้อมูลครบและเป็นตัวเลข)
+    // คำนวณ Risk/Reward Ratio
     let rr = '';
     if (data.entry_price && data.sl && data.tp && data.direction) {
       try {
@@ -26,28 +23,31 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         console.error('Error calculating R:R:', error);
-        // ไม่ทำอะไร - ปล่อยให้ rr เป็นค่าว่าง
       }
     }
 
-    // คำนวณ Holding Time (เฉพาะถ้ามีข้อมูลครบ)
+    // คำนวณ Holding Time (รองรับกรณีไม่เลือกวันปิด)
     let holdingTime = '';
-    if (data.date && data.open_time && data.close_time) {
+    // เช็คว่ามี open_date และเวลาทั้งเปิด/ปิด ครบไหม
+    if (data.open_date && data.open_time && data.close_time) {
       try {
+        // ถ้า user ไม่กรอก close_date ให้ถือว่าปิดวันเดียวกับ open_date
+        const closeDate = data.close_date || data.open_date;
+
         holdingTime = calculateHoldingTime(
-          `${data.date}T${data.open_time}`,
-          `${data.date}T${data.close_time}`
+          `${data.open_date}T${data.open_time}`,
+          `${closeDate}T${data.close_time}`
         );
       } catch (error) {
         console.error('Error calculating holding time:', error);
-        // ไม่ทำอะไร - ปล่อยให้ holdingTime เป็นค่าว่าง
       }
     }
 
-    // เตรียมข้อมูลสำหรับบันทึก
+    // เตรียมข้อมูลสำหรับบันทึก (ให้ตรงกับชื่อคอลัมน์ใน Google Sheet เป๊ะๆ)
     const rowData = {
       id: Date.now().toString(),
-      date: data.date || '',
+      open_date: data.open_date || '',  
+      close_date: data.close_date || '',
       open_time: data.open_time || '',
       close_time: data.close_time || '',
       symbol: data.symbol || '',
@@ -70,10 +70,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Data to be saved:', rowData);
 
-    // เพิ่มแถวใหม่ใน Google Sheet
     await sheet.addRow(rowData);
-
-    console.log('Trade saved successfully');
 
     return NextResponse.json({ 
       success: true, 
@@ -82,8 +79,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error adding trade:', error);
-    
-    // ส่งข้อมูล error ที่ละเอียดขึ้น
     return NextResponse.json(
       { 
         success: false, 
