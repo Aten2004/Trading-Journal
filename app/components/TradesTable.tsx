@@ -341,7 +341,9 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
                       </td>
                       <td className="py-2 px-4 bg-blue-500/5">
                         <div className="text-slate-400 text-xs">
-                          {trade.holding_time ? `${trade.holding_time}h` : '-'}
+                          {trade.holding_time && trade.holding_time.trim() !== '' 
+                            ? trade.holding_time 
+                            : '-'}
                         </div>
                       </td>
                       <td className="py-2 px-4 text-slate-300 text-sm">{renderEditableCell(trade, 'strategy')}</td>
