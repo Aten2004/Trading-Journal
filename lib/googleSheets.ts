@@ -32,8 +32,6 @@ export async function getGoogleSheet() {
       throw new Error('Sheet "Trades" not found in the Google Spreadsheet');
     }
 
-    console.log('Using sheet:', sheet.title);
-
     return sheet;
   } catch (error) {
     console.error('Error connecting to Google Sheets:', error);
@@ -78,26 +76,64 @@ export function calculateHoldingTime(openTime: string, closeTime: string): strin
     const totalHours = Math.floor(totalMinutes / 60);
     const totalDays = Math.floor(totalHours / 24);
 
-    // กรณีไม่ถึง 1 ชั่วโมง
     if (totalHours === 0) {
       return `${totalMinutes}m`;
     }
-
-    // กรณีไม่ถึง 1 วัน
     if (totalDays === 0) {
       const remainMinutes = totalMinutes % 60;
-      return remainMinutes === 0
-        ? `${totalHours}h`
-        : `${totalHours}h ${remainMinutes}m`;
+      return remainMinutes === 0 ? `${totalHours}h` : `${totalHours}h ${remainMinutes}m`;
     }
-
-    // กรณีมากกว่า 1 วัน
     const remainHours = totalHours % 24;
-    return remainHours === 0
-      ? `${totalDays}d`
-      : `${totalDays}d ${remainHours}h`;
+    return remainHours === 0 ? `${totalDays}d` : `${totalDays}d ${remainHours}h`;
   } catch (error) {
     console.error('Error calculating holding time:', error);
+    return '';
+  }
+}
+
+// ✅ เพิ่มฟังก์ชันคำนวณ P&L % (Price Change %)
+export function calculatePnlPct(
+  entry: number,
+  exit: number,
+  direction: string
+): string {
+  try {
+    if (!entry || !exit || entry === 0) return '';
+
+    let pct = 0;
+    if (direction === 'Buy') {
+      pct = ((exit - entry) / entry) * 100;
+    } else if (direction === 'Sell') {
+      pct = ((entry - exit) / entry) * 100;
+    }
+
+    return pct.toFixed(2);
+  } catch (error) {
+    console.error('Error calculating P&L %:', error);
+    return '';
+  }
+}
+
+// ✅ เพิ่มฟังก์ชันคำนวณ P&L Amount (เงิน)
+export function calculatePnl(
+  entry: number,
+  exit: number,
+  positionSize: number,
+  direction: string
+): string {
+  try {
+    if (!entry || !exit || !positionSize) return '';
+
+    let pnl = 0;
+    if (direction === 'Buy') {
+      pnl = (exit - entry) * positionSize;
+    } else if (direction === 'Sell') {
+      pnl = (entry - exit) * positionSize;
+    }
+
+    return pnl.toFixed(2);
+  } catch (error) {
+    console.error('Error calculating P&L:', error);
     return '';
   }
 }
