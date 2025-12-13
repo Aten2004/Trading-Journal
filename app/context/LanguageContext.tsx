@@ -61,6 +61,8 @@ const translations = {
     // --- Dashboard ---
     dash_title: 'แดชบอร์ดสรุปผล',
     dash_subtitle: 'วิเคราะห์สถิติและพฤติกรรมการเทรดของคุณ',
+    btn_export: '📥 โหลด Excel',
+    btn_exporting: 'กำลังสร้างไฟล์...',
     btn_refresh: '↻ รีเฟรช',
     btn_refreshing: 'กำลังโหลด...',
     
@@ -336,6 +338,8 @@ const translations = {
     // --- Dashboard ---
     dash_title: 'Trading Dashboard',
     dash_subtitle: 'Analyze and improve your trading with insights',
+    btn_export: '📥 Export Excel',
+    btn_exporting: 'Creating...',
     btn_refresh: '↻ Refresh Data',
     btn_refreshing: 'Refreshing...',
 
@@ -397,7 +401,7 @@ const translations = {
     th_close_date: 'Close Date',
     th_open_time: 'Open Time',
     th_close_time: 'Close Time',
-    th_dir: 'Dir',
+    th_dir: 'Direction',
     th_pos: 'Size (Oz)',
     th_entry: 'Entry',
     th_exit: 'Exit',

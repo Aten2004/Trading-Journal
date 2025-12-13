@@ -34,16 +34,41 @@ interface Trade {
 }
 
 export default function Dashboard() {
-  const { t } = useLanguage(); // ✅ เรียกใช้
+  const { t } = useLanguage(); 
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchTrades();
     const interval = setInterval(fetchTrades, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+        const response = await fetch('/api/export-excel');
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Trading_Journal_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } else {
+            alert('Export failed');
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('Error downloading excel');
+    } finally {
+        setExporting(false);
+    }
+  };
 
   const fetchTrades = async () => {
     try {
@@ -221,15 +246,29 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm sm:text-base font-medium
-                      bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800
-                      text-white border border-slate-500 transition-colors"
-          >
-            {refreshing ? t('btn_refreshing') : t('btn_refresh')}
-          </button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            {/* ปุ่ม Export Excel */}
+            <button
+                onClick={handleExportExcel}
+                disabled={exporting}
+                className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm sm:text-base font-medium
+                        bg-green-600 hover:bg-green-700 disabled:bg-slate-700
+                        text-white shadow-lg transition-colors flex items-center justify-center gap-2"
+            >
+                {exporting ? t('btn_exporting') : t('btn_export')}
+            </button>
+
+            {/* ปุ่ม Refresh */}
+            <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm sm:text-base font-medium
+                        bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800
+                        text-white border border-slate-500 transition-colors"
+            >
+                {refreshing ? t('btn_refreshing') : t('btn_refresh')}
+            </button>
+          </div>
         </div>
 
         {/* Trades Table */}
