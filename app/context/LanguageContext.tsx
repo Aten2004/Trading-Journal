@@ -50,7 +50,7 @@ const translations = {
     val_no: 'ไม่ (No)',
 
     // Messages
-    msg_auto_calc: 'ระบบคำนวณ P&L, R:R และ Holding Time ให้อัตโนมัติ',
+    msg_auto_calc: 'ระบบคำนวณ P&L, R:R และเวลาที่ถือให้อัตโนมัติ',
     btn_save: 'บันทึกเทรด',
     btn_saving: 'กำลังบันทึก...',
     msg_success: '✅ บันทึกสำเร็จ!',
@@ -128,10 +128,10 @@ const translations = {
     th_exit: 'ราคาออก',
     th_sl: 'SL',
     th_tp: 'TP',
-    th_pnl: 'Profit',
-    th_pnl_pct: '% Growth',
+    th_pnl: 'กำไร/ขาดทุน',
+    th_pnl_pct: '% การเติบโต',
     th_rr: 'R:R',
-    th_time: 'ถือครอง',
+    th_time: 'เวลาที่ถือ',
     th_strategy: 'กลยุทธ์',
     th_emo: 'อารมณ์',
     th_mistake: 'พลาดเรื่อง',

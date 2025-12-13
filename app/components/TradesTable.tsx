@@ -146,8 +146,8 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             autoFocus
             className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
-            <option value="Buy">{t('val_buy')}</option>
-            <option value="Sell">{t('val_sell')}</option>
+            <option value="Buy">Buy</option>
+            <option value="Sell">Sell</option>
           </select>
         );
       }

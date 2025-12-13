@@ -151,8 +151,8 @@ export default function Home() {
                   {t('label_direction')} <span className="text-slate-500">{t('opt_optional')}</span>
                 </label>
                 <select name="direction" value={formData.direction} onChange={handleChange} className="input-field">
-                  <option>Buy (ซื้อ)</option>
-                  <option>Sell (ขาย)</option>
+                  <option value="Buy">Buy (ซื้อ)</option>
+                  <option value="Sell">Sell (ขาย)</option>
                 </select>
               </div>
             </div>
