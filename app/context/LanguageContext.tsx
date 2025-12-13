@@ -25,7 +25,7 @@ const translations = {
     label_close_date: 'วันที่ปิด',
     label_close_time: 'เวลาปิด',
     label_direction: 'ทิศทาง',
-    label_position: 'ขนาด',
+    label_position: 'ขนาด (Troy Oz)',
     label_entry: 'ราคาเข้า',
     label_exit: 'ราคาออก',
     label_sl: 'จุดตัดขาดทุน (SL)',
@@ -37,7 +37,7 @@ const translations = {
     label_notes: 'บันทึกเพิ่มเติม',
     
     // Placeholders & Options
-    ph_position: 'เช่น 0.01, 1.0',
+    ph_position: 'เช่น 100 (1 Lot), 10 (0.1 Lot)',
     ph_emotion: '1 = เฉยๆ | 10 = กลัว/โลภมาก',
     ph_notes: 'เหตุผลเข้า? อารมณ์ตลาด?',
     opt_optional: '(ไม่ระบุได้)',
@@ -123,7 +123,7 @@ const translations = {
     th_open_time: 'เวลาเปิด',
     th_close_time: 'เวลาปิด',
     th_dir: 'ทิศทาง',
-    th_pos: 'ขนาด',
+    th_pos: 'ขนาด (Oz)',
     th_entry: 'ราคาเข้า',
     th_exit: 'ราคาออก',
     th_sl: 'SL',
@@ -300,7 +300,7 @@ const translations = {
     label_close_date: 'Close Date',
     label_close_time: 'Close Time',
     label_direction: 'Direction',
-    label_position: 'Position Size',
+    label_position: 'Position Size (Troy Oz)',
     label_entry: 'Entry Price',
     label_exit: 'Exit Price',
     label_sl: 'Stop Loss',
@@ -312,7 +312,7 @@ const translations = {
     label_notes: 'Notes',
     
     // Placeholders & Options
-    ph_position: 'e.g. 0.01, 1.0',
+    ph_position: 'e.g. 100 (1 Lot), 10 (0.1 Lot)',
     ph_emotion: '1 = Calm | 10 = Fear/Greed',
     ph_notes: 'Why enter/exit? Market conditions?',
     opt_optional: '(optional)',
@@ -398,7 +398,7 @@ const translations = {
     th_open_time: 'Open Time',
     th_close_time: 'Close Time',
     th_dir: 'Dir',
-    th_pos: 'Size',
+    th_pos: 'Size (Oz)',
     th_entry: 'Entry',
     th_exit: 'Exit',
     th_sl: 'SL',

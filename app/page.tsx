@@ -163,7 +163,15 @@ export default function Home() {
                     <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                     {t('label_position')} <span className="text-slate-500">{t('opt_optional')}</span>
                     </label>
-                    <input type="number" step="0.01" name="position_size" value={formData.position_size} onChange={handleChange} placeholder={t('ph_position')} className="input-field" />
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      name="position_size" 
+                      value={formData.position_size} 
+                      onChange={handleChange} 
+                      placeholder={t('ph_position')} 
+                      className="input-field" 
+                    />
                 </div>
                 <div>
                     <label className="block text-slate-300 mb-2 text-sm sm:text-base">
