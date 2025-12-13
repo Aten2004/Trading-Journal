@@ -78,7 +78,7 @@ const translations = {
     stat_win_rate: 'อัตราชนะ',
     stat_total_pnl: 'กำไรสุทธิ',
     stat_profit_factor: 'สัดส่วนกำไรต่อขาดทุน',
-    stat_avg_rr: 'อาร์อาร์เฉลี่ย',
+    stat_avg_rr: 'R:R เฉลี่ย',
     stat_max_dd: 'ขาดทุนสะสมสูงสุด',
     stat_plan_adherence: 'วินัยตามแผน',
     stat_common_mistake: 'จุดพลาดบ่อย',

@@ -122,7 +122,7 @@ export default function Dashboard() {
     : '0';
 
   // Plan & Psychology
-  const planFollowedCount = trades.filter(t => t.followed_plan === 'true').length;
+  const planFollowedCount = trades.filter(t => String(t.followed_plan).toLowerCase() === 'true').length;
   const planAdherence = totalTrades > 0 ? ((planFollowedCount / totalTrades) * 100).toFixed(1) : '0';
 
   const mistakeCount: { [key: string]: number } = {};
@@ -344,7 +344,7 @@ export default function Dashboard() {
 
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-700">
               <div className="text-slate-400 text-xs sm:text-sm mb-1">{t('stat_max_dd')}</div>
-              <div className={`text-2xl sm:text-3xl font-bold ${parseFloat(maxDrawdown) > -15 ? 'text-green-400' : parseFloat(maxDrawdown) > -25 ? 'text-yellow-400' : 'text-red-400'}`}>
+              <div className={`text-2xl sm:text-3xl font-bold ${parseFloat(maxDrawdown) < 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {maxDrawdown}%
               </div>
               <div className="text-[10px] sm:text-xs text-slate-500 mt-2">
