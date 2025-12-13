@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getGoogleSheet, calculatePnlPct, calculatePnl } from '@/lib/googleSheets';
+import { getGoogleSheet, calculatePnlPct, calculatePnl, calculateHoldingTime } from '@/lib/googleSheets'; // ✅ เพิ่ม calculateHoldingTime
 
 export async function GET() {
   try {
@@ -14,8 +14,9 @@ export async function GET() {
       
       let pnlPct = row.get('pnl_pct');
       let pnlAmount = row.get('pnl');
+      let holdingTime = row.get('holding_time'); 
 
-      // ✅ คำนวณค่าถ้ายังไม่มีใน Sheet
+      // คำนวณ P&L ถ้ายังไม่มี
       if (!isNaN(entryPrice) && !isNaN(exitPrice) && direction) {
         if (!pnlPct || pnlPct === '') {
             pnlPct = calculatePnlPct(entryPrice, exitPrice, direction);
@@ -23,6 +24,19 @@ export async function GET() {
         if ((!pnlAmount || pnlAmount === '') && !isNaN(positionSize)) {
             pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, direction);
         }
+      }
+
+      // คำนวณ Holding Time ถ้ายังไม่มี (เพิ่มส่วนนี้)
+      if ((!holdingTime || holdingTime === '') && row.get('open_date') && row.get('open_time') && row.get('close_time')) {
+          const openDate = row.get('open_date');
+          const closeDate = row.get('close_date') || openDate; // ถ้าไม่มีวันปิด ใช้วันเดียวกับวันเปิด
+          const openTime = row.get('open_time');
+          const closeTime = row.get('close_time');
+
+          holdingTime = calculateHoldingTime(
+            `${openDate}T${openTime}`,
+            `${closeDate}T${closeTime}`
+          );
       }
 
       return {
@@ -42,7 +56,7 @@ export async function GET() {
         pnl_pct: pnlPct, 
         strategy: row.get('strategy'),
         risk_reward_ratio: row.get('risk_reward_ratio'),
-        holding_time: row.get('holding_time'),
+        holding_time: holdingTime, 
         emotion: row.get('emotion'),
         main_mistake: row.get('main_mistake'),
         followed_plan: row.get('followed_plan'),
