@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext'; // ✅ Import Hook
 
 interface Trade {
   id: string;
@@ -32,6 +33,7 @@ interface TradesTableProps {
 }
 
 export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
+  const { t } = useLanguage(); // ✅ เรียกใช้
   const [loading, setLoading] = useState(false);
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -65,13 +67,13 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       const result = await response.json();
       if (result.success) {
         await onRefresh();
-        setMessage('✅ บันทึกสำเร็จ');
+        setMessage(t('tt_save_success'));
         setTimeout(() => setMessage(''), 3000);
       } else {
         setMessage('❌ ' + result.error);
       }
     } catch (error) {
-      setMessage('❌ ไม่สามารถบันทึกได้');
+      setMessage(t('tt_save_error'));
     } finally {
       setSaving(false);
       setEditingCell(null);
@@ -79,7 +81,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
   };
 
   const handleDelete = async (tradeId: string) => {
-    if (!confirm('ต้องการลบข้อมูลนี้?')) return;
+    if (!confirm(t('tt_confirm_del'))) return;
     setSaving(true);
     setMessage('');
     try {
@@ -87,13 +89,13 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       const result = await response.json();
       if (result.success) {
         await onRefresh();
-        setMessage('✅ ลบสำเร็จ');
+        setMessage(t('tt_del_success'));
         setTimeout(() => setMessage(''), 3000);
       } else {
         setMessage('❌ ' + result.error);
       }
     } catch (error) {
-      setMessage('❌ ไม่สามารถลบได้');
+      setMessage(t('tt_del_error'));
     } finally {
       setSaving(false);
     }
@@ -144,8 +146,8 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             autoFocus
             className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
-            <option>Buy</option>
-            <option>Sell</option>
+            <option value="Buy">{t('val_buy')}</option>
+            <option value="Sell">{t('val_sell')}</option>
           </select>
         );
       }
@@ -175,13 +177,13 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             autoFocus
             className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
-            <option>No Mistake</option>
-            <option>No SL</option>
-            <option>Oversize</option>
-            <option>Overtrade</option>
-            <option>FOMO</option>
-            <option>Revenge</option>
-            <option>No Plan</option>
+            <option value="No Mistake">{t('opt_no_mistake')}</option>
+            <option value="No SL">No SL</option>
+            <option value="Oversize">Oversize</option>
+            <option value="Overtrade">Overtrade</option>
+            <option value="FOMO">FOMO</option>
+            <option value="Revenge">Revenge</option>
+            <option value="No Plan">No Plan</option>
           </select>
         );
       }
@@ -194,8 +196,8 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             autoFocus
             className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
-            <option value="true">Yes</option>
-            <option value="false">No</option>
+            <option value="true">{t('val_yes')}</option>
+            <option value="false">{t('val_no')}</option>
           </select>
         );
       }
@@ -273,7 +275,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-white text-xl">กำลังโหลด...</div>
+        <div className="text-white text-xl">{t('msg_loading')}</div>
       </div>
     );
   }
@@ -294,7 +296,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       {/* Header with Refresh Button */}
       <div className="flex items-center justify-between">
         <p className="text-slate-400 text-sm">
-          คลิกที่ช่องเพื่อแก้ไข • กด Enter เพื่อบันทึก • กด Esc เพื่อยกเลิก
+          {t('tt_edit_hint')}
         </p>
       </div>
 
@@ -302,12 +304,12 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 overflow-hidden">
         {trades.length === 0 ? (
           <div className="text-center py-12 text-slate-400">
-            <p className="text-xl mb-2">🤷 ยังไม่มีข้อมูลเทรด</p>
+            <p className="text-xl mb-2">{t('tt_no_data')}</p>
             <a
               href="/"
               className="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
             >
-              เริ่มบันทึกเทรด
+              {t('tt_btn_start')}
             </a>
           </div>
         ) : (
@@ -316,28 +318,28 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-700 bg-slate-900/50">
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">No.</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Symbol</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Open Date</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Close Date</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Open Time</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Close Time</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Dir</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Pos</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Entry</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Exit</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">SL</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">TP</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">P&L</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">P&L %</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">R:R</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">Time</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Strategy</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Emo</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Mistake</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Plan?</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm min-w-[200px]">Notes</th>
-                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">Del</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_no')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_symbol')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_open_date')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_close_date')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_open_time')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_close_time')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_dir')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_pos')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_entry')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_exit')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_sl')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_tp')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">{t('th_pnl')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">{t('th_pnl_pct')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">{t('th_rr')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm bg-blue-500/10">{t('th_time')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_strategy')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_emo')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_mistake')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_plan')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm min-w-[200px]">{t('th_notes')}</th>
+                    <th className="text-left text-slate-300 py-4 px-4 font-semibold text-sm">{t('th_del')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -405,7 +407,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
                   disabled={currentPage === 1}
                   className="px-3 py-1 rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm"
                 >
-                  ← ก่อนหน้า
+                  {t('tt_prev')}
                 </button>
                 
                 <div className="flex gap-1">
@@ -429,7 +431,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm"
                 >
-                  ถัดไป →
+                  {t('tt_next')}
                 </button>
               </div>
             )}
@@ -438,7 +440,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       </div>
 
       <div className="text-slate-400 text-sm text-center">
-        {trades.length} เทรด • แสดงหน้า {currentPage}/{totalPages}
+        {trades.length} {t('tt_page_info')} {currentPage}/{totalPages}
       </div>
     </div>
   );
