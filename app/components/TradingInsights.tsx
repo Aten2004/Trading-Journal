@@ -20,6 +20,8 @@ interface Trade {
   symbol: string;
   position_size: string;
   strategy: string;
+  sl: string; 
+  tp: string; 
 }
 
 interface TradingInsightsProps {
