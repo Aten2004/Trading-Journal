@@ -288,7 +288,6 @@ export default function Home() {
           </form>
         </div>
       </div>
-      {/* Helper CSS Class (Add this style block at the bottom or in globals.css if preferred for cleaner jsx) */}
       <style jsx>{`
         .input-field {
           width: 100%;

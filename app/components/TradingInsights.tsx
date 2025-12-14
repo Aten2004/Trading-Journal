@@ -159,7 +159,7 @@ export default function TradingInsights({ trades }: TradingInsightsProps) {
         dayStats[day] = (dayStats[day] || 0) + parseFloat(t.pnl || '0');
     }
   });
-  const isMondayBad = (dayStats['Monday'] || 0) < -100; // Threshold
+  const isMondayBad = (dayStats['Monday'] || 0) < -100;
 
   // 6. Streak Logic (Fixed)
   let currentLosingStreak = 0;

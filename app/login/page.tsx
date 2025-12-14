@@ -38,9 +38,7 @@ export default function LoginPage() {
   };
 
   return (
-    // ✅ เพิ่ม px-4 เพื่อกันขอบจอในมือถือ
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white px-4">
-      {/* ✅ ปรับ p-6 (เล็กลงในมือถือ) และ max-w-sm (ไม่กว้างเกินไป) */}
       <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-sm sm:max-w-md border border-gray-700">
         <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-blue-400">เข้าสู่ระบบ</h2>
         

@@ -52,7 +52,7 @@ export default function Dashboard() {
   }, [user]);
 
   const handleExportExcel = async () => {
-    if (!user) return; // กันเหนียว
+    if (!user) return;
     setExporting(true);
     try {
         // ส่งชื่อ User ไปด้วยตอน Export (ถ้า API Export รองรับ)
@@ -536,7 +536,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ✅ New Insights Component */}
         <TradingInsights trades={trades} />
 
       </div>

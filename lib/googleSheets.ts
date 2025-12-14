@@ -2,13 +2,13 @@ import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 
 export async function getGoogleSheet(sheetTitle: string = 'Trades') {
-  // ✅ 1. เช็คก่อนว่าตั้งค่า .env ครบไหม (ป้องกัน Error 500 แบบงงๆ)
+  // เช็คก่อนว่าตั้งค่า .env ครบไหม (ป้องกัน Error 500 แบบงงๆ)
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_SHEETS_ID) {
     throw new Error('❌ Missing Google Sheets Environment Variables. Please check .env.local');
   }
 
   try {
-    // ✅ 2. เตรียมการเชื่อมต่อ (แก้ปัญหา \n ใน Private Key)
+    // เตรียมการเชื่อมต่อ (แก้ปัญหา \n ใน Private Key)
     const serviceAccountAuth = new JWT({
       email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -23,13 +23,13 @@ export async function getGoogleSheet(sheetTitle: string = 'Trades') {
       serviceAccountAuth
     );
 
-    // ✅ 3. โหลดข้อมูล Sheet
+    // โหลดข้อมูล Sheet
     await doc.loadInfo();
     
     // ลองดึง Sheet ตามชื่อ
     let sheet = doc.sheetsByTitle[sheetTitle];
     
-    // 🔥 4. ระบบแก้ปัญหาอัตโนมัติ: ถ้าหา Tab "Users" ไม่เจอ -> สร้างให้เลย!
+    // ระบบแก้ปัญหาอัตโนมัติ: ถ้าหา Tab "Users" ไม่เจอ -> สร้างให้เลย
     if (!sheet && sheetTitle === 'Users') {
       console.log('⚠️ ไม่พบ Tab "Users" - กำลังสร้างให้ใหม่...');
       try {
@@ -43,7 +43,7 @@ export async function getGoogleSheet(sheetTitle: string = 'Trades') {
       }
     }
 
-    // 🔥 5. Fallback: ถ้าหา Tab "Trades" ไม่เจอ ให้ใช้อันแรกสุดแก้ขัดไปก่อน
+    // Fallback: ถ้าหา Tab "Trades" ไม่เจอ ให้ใช้อันแรกสุดแก้ขัดไปก่อน
     if (!sheet) {
       if (sheetTitle === 'Trades' && doc.sheetsByIndex[0]) {
           console.log('⚠️ ไม่พบ Tab "Trades" โดยตรง - ระบบจะใช้ Tab แรกสุดแทน');
@@ -62,8 +62,7 @@ export async function getGoogleSheet(sheetTitle: string = 'Trades') {
   }
 }
 
-// --- ฟังก์ชันคำนวณ (Helper Functions) ---
-
+// ฟังก์ชันคำนวณ (Helper Functions)
 export function calculateRR(
   entry: number,
   sl: number,

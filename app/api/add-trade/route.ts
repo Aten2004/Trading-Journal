@@ -6,7 +6,6 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     
-    // ✅ เช็คว่าส่ง username มาด้วยไหม (จำเป็นมาก)
     if (!data.username) {
         return NextResponse.json({ success: false, error: 'Missing username' }, { status: 400 });
     }

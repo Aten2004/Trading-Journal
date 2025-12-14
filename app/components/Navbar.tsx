@@ -13,10 +13,6 @@ export default function Navbar() {
   // ฟังก์ชันกำหนดสไตล์ปุ่มเมนู (Responsive: มือถือปุ่มเล็ก / จอใหญ่ปุ่มใหญ่)
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
-    // ✅ ปรับ: 
-    // - ความสูง: h-8 (มือถือ) -> h-10 (จอใหญ่)
-    // - ความกว้าง: min-w-[85px] -> min-w-[110px]
-    // - ตัวอักษร: text-xs -> text-sm
     return `h-8 sm:h-10 min-w-[85px] sm:min-w-[110px] flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 rounded-lg transition-all duration-200 font-medium text-xs sm:text-sm
     ${isActive 
       ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 translate-y-[-1px]' 
@@ -26,8 +22,8 @@ export default function Navbar() {
 
   return (
     <nav className="bg-slate-900/90 backdrop-blur-md border-b border-slate-700 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4"> {/* ลด padding มือถือลงนิดหน่อย */}
-        <div className="flex items-center justify-between h-14 sm:h-16"> {/* ลดความสูง Bar ในมือถือ */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4"> 
+        <div className="flex items-center justify-between h-14 sm:h-16"> 
           
           {/* 1. LOGO */}
           <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3">

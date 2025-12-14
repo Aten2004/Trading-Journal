@@ -51,9 +51,7 @@ export default function RegisterPage() {
   };
 
   return (
-    // ✅ เพิ่ม px-4
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white px-4">
-      {/* ✅ ปรับ p-6 และ max-w-sm */}
       <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-sm sm:max-w-md border border-gray-700">
         <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-green-400">สมัครสมาชิก</h2>
         

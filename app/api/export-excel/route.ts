@@ -4,21 +4,21 @@ import ExcelJS from 'exceljs';
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. รับค่า Username จาก URL
+    // รับค่า Username จาก URL
     const username = request.nextUrl.searchParams.get('username');
 
     if (!username) {
       return NextResponse.json({ success: false, error: 'Username is required' }, { status: 400 });
     }
 
-    // ✅ แก้ไขจุดที่ 1: ต้องระบุชื่อ Sheet ว่า 'Trades' เพื่อให้ดึงข้อมูลถูก Tab
+    // ต้องระบุชื่อ Sheet ว่า 'Trades' เพื่อให้ดึงข้อมูลถูก Tab
     const sheet = await getGoogleSheet('Trades');
     const rows = await sheet.getRows();
 
-    // 2. กรองข้อมูล: เอาเฉพาะแถวที่เป็นของ Username นี้
+    // กรองข้อมูล: เอาเฉพาะแถวที่เป็นของ Username นี้
     const userRows = rows.filter((row) => row.get('username') === username);
 
-    // 3. เตรียมข้อมูลสำหรับลง Excel
+    // เตรียมข้อมูลสำหรับลง Excel
     const trades = userRows.map((row) => {
       const entry = parseFloat(row.get('entry_price') || '0');
       const exit = parseFloat(row.get('exit_price') || '0');

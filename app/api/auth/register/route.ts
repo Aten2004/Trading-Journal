@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { username, password } = body;
 
-    // 1. ตรวจสอบข้อมูลเบื้องต้น
+    // ตรวจสอบข้อมูลเบื้องต้น
     if (!username || !password) {
       return NextResponse.json(
         { success: false, error: 'กรุณากรอก Username และ Password' },
@@ -16,11 +16,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. เชื่อมต่อ Google Sheet เลือก Tab "Users"
+    // เชื่อมต่อ Google Sheet เลือก Tab "Users"
     const sheet = await getGoogleSheet('Users');
     const rows = await sheet.getRows();
 
-    // 3. เช็คว่ามี Username นี้อยู่แล้วหรือยัง
+    // เช็คว่ามี Username นี้อยู่แล้วหรือยัง
     const existingUser = rows.find((row) => row.get('username') === username);
     if (existingUser) {
       return NextResponse.json(
@@ -29,11 +29,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. เข้ารหัส Password (เพื่อความปลอดภัย ไม่เก็บเป็น Text ธรรมดา)
+    // เข้ารหัส Password (เพื่อความปลอดภัย ไม่เก็บเป็น Text ธรรมดา)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 5. บันทึกข้อมูลลง Sheet
+    // บันทึกข้อมูลลง Sheet
     await sheet.addRow({
       id: uuidv4(),
       username: username,
