@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useLanguage } from '../context/LanguageContext'; // ✅ Import Hook
+import { useLanguage } from '../context/LanguageContext'; 
+import { useAuth } from '../context/AuthContext';
 
 interface Trade {
   id: string;
@@ -33,7 +34,8 @@ interface TradesTableProps {
 }
 
 export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
-  const { t } = useLanguage(); // ✅ เรียกใช้
+  const { t } = useLanguage();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -51,28 +53,43 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
   };
 
   const handleSave = async (tradeId: string, field: string) => {
+    if (!user) return; // ต้องมี User
+
+    const trade = trades.find((t) => t.id === tradeId);
+    if (!trade) return;
+
+    // ถ้าค่าเหมือนเดิม ไม่ต้องส่งไปบันทึก
+    if (String(trade[field as keyof Trade]) === editValue) {
+        setEditingCell(null);
+        return;
+    }
+
     setSaving(true);
     setMessage('');
-    try {
-      const trade = trades.find((t) => t.id === tradeId);
-      if (!trade) return;
 
-      const updatedTrade = { ...trade, [field]: editValue };
+    try {
       const response = await fetch('/api/update-trade', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedTrade),
+        body: JSON.stringify({
+          id: tradeId,       
+          field: field,      
+          value: editValue, 
+          username: user.username, 
+        }),
       });
 
       const result = await response.json();
+      
       if (result.success) {
         await onRefresh();
         setMessage(t('tt_save_success'));
         setTimeout(() => setMessage(''), 3000);
       } else {
-        setMessage('❌ ' + result.error);
+        setMessage((result.error || 'Update failed'));
       }
     } catch (error) {
+      console.error(error);
       setMessage(t('tt_save_error'));
     } finally {
       setSaving(false);
@@ -127,7 +144,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => handleSave(trade.id, field)}
             autoFocus
-            className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
+            className="w-full min-w-[100px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
             <option>XAUUSD</option>
             <option>EURUSD</option>
@@ -144,10 +161,10 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => handleSave(trade.id, field)}
             autoFocus
-            className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
+            className="w-full min-w-[100px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
-            <option value="Buy">Buy</option>
-            <option value="Sell">Sell</option>
+            <option value="Buy">Buy (ซื้อ)</option>
+            <option value="Sell">Sell (ขาย)</option>
           </select>
         );
       }
@@ -158,7 +175,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => handleSave(trade.id, field)}
             autoFocus
-            className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
+            className="w-full min-w-[100px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
             <option>Trend Following</option>
             <option>Grid</option>
@@ -175,7 +192,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => handleSave(trade.id, field)}
             autoFocus
-            className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
+            className="w-full min-w-[100px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
             <option value="No Mistake">{t('opt_no_mistake')}</option>
             <option value="No SL">No SL</option>
@@ -194,10 +211,26 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => handleSave(trade.id, field)}
             autoFocus
-            className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm"
+            className="w-full min-w-[60px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
             <option value="true">{t('val_yes')}</option>
             <option value="false">{t('val_no')}</option>
+          </select>
+        );
+      }
+
+      if (field === 'emotion') {
+        return (
+          <select
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={() => handleSave(trade.id, field)}
+            autoFocus
+            className="w-full min-w-[60px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
+          >
+             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                <option key={num} value={num}>{num}</option>
+             ))}
           </select>
         );
       }
@@ -218,14 +251,13 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
 
       return (
         <input
-          // เช็คว่าเป็น field วันที่หรือเวลาหรือไม่
           type={field.includes('date') ? 'date' : field.includes('time') ? 'time' : 'text'}
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={() => handleSave(trade.id, field)}
           onKeyDown={(e) => handleKeyDown(e, trade.id, field)}
           autoFocus
-          className="w-full bg-slate-600 text-white rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full min-w-[100px] bg-slate-600 text-white rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       );
     }

@@ -2,60 +2,92 @@
 
 import { usePathname } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { toggleLanguage, t } = useLanguage();
+  const { user, logout } = useAuth();
+  const { toggleLanguage, language, t } = useLanguage();
+
+  // ฟังก์ชันกำหนดสไตล์ปุ่มเมนู (Responsive: มือถือปุ่มเล็ก / จอใหญ่ปุ่มใหญ่)
+  const getLinkClass = (path: string) => {
+    const isActive = pathname === path;
+    // ✅ ปรับ: 
+    // - ความสูง: h-8 (มือถือ) -> h-10 (จอใหญ่)
+    // - ความกว้าง: min-w-[85px] -> min-w-[110px]
+    // - ตัวอักษร: text-xs -> text-sm
+    return `h-8 sm:h-10 min-w-[85px] sm:min-w-[110px] flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 rounded-lg transition-all duration-200 font-medium text-xs sm:text-sm
+    ${isActive 
+      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 translate-y-[-1px]' 
+      : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700 hover:border-slate-600'
+    }`;
+  };
 
   return (
-    <nav className="bg-slate-900/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
-              {t('nav_title')}
-            </h1>
+    <nav className="bg-slate-900/90 backdrop-blur-md border-b border-slate-700 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4"> {/* ลด padding มือถือลงนิดหน่อย */}
+        <div className="flex items-center justify-between h-14 sm:h-16"> {/* ลดความสูง Bar ในมือถือ */}
+          
+          {/* 1. LOGO */}
+          <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3">
+             <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg shadow-blue-500/20">
+               {user ? user.username.charAt(0).toUpperCase() : 'T'}
+             </div>
+             <span className="text-lg font-bold text-white hidden md:block tracking-wide">
+               {t('nav_title')}
+             </span>
           </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex items-center space-x-2">
+          {/* 2. MENU LINKS (ตรงกลาง) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link href="/" className={getLinkClass('/')}>
+              <span className="text-base sm:text-lg">➕</span>
+              <span>{t('nav_record')}</span> 
+            </Link>
+
+            <Link href="/dashboard" className={getLinkClass('/dashboard')}>
+              <span className="text-base sm:text-lg">📊</span>
+              <span>{t('nav_dashboard')}</span>
+            </Link>
+          </div>
+
+          {/* 3. RIGHT SECTION (ภาษา & User) */}
+          <div className="flex items-center gap-2 sm:gap-3">
             
-            {/* 1. ปุ่มเปลี่ยนภาษา (Fixed Width) */}
+            {/* ปุ่มเปลี่ยนภาษา (ปรับขนาดตามจอ) */}
             <button
               onClick={toggleLanguage}
-              className="w-16 h-8 sm:w-20 sm:h-9 flex items-center justify-center rounded-full border border-slate-600 text-xs sm:text-sm font-bold text-slate-300 hover:bg-slate-800 transition-all shadow-sm whitespace-nowrap"
+              className="h-8 sm:h-9 px-2 sm:px-3 rounded-lg border border-slate-600 text-[10px] sm:text-xs font-bold text-slate-400 hover:border-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1"
             >
-              {t('lang_btn')}
+              {language === 'en' ? 'TH' : 'EN'}
             </button>
 
-            {/* 2. ปุ่ม Record Trade (Fixed Width) */}
-            <a
-              href="/"
-              className={`w-28 sm:w-40 h-9 sm:h-10 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-1 sm:space-x-2 text-xs sm:text-base ${
-                pathname === '/'
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
-                  : 'bg-slate-700 hover:bg-slate-600 text-white'
-              }`}
-            >
-              <span className="text-sm sm:text-lg">➕</span>
-              <span className="truncate">{t('nav_record')}</span>
-            </a>
-
-            {/* 3. ปุ่ม Dashboard (Fixed Width) */}
-            <a
-              href="/dashboard"
-              className={`w-28 sm:w-40 h-9 sm:h-10 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-1 sm:space-x-2 text-xs sm:text-base ${
-                pathname === '/dashboard'
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
-                  : 'bg-slate-700 hover:bg-slate-600 text-white'
-              }`}
-            >
-              <span className="text-sm sm:text-lg">📊</span>
-              <span className="truncate">{t('nav_dashboard')}</span>
-            </a>
-
+            {user ? (
+              <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-slate-700">
+                <span className="hidden lg:block text-sm font-medium text-slate-300">
+                  {user.username}
+                </span>
+                
+                {/* ปุ่ม Logout */}
+                <button 
+                  onClick={logout} 
+                  className="h-8 sm:h-9 px-2 sm:px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-all text-[10px] sm:text-xs font-medium flex items-center gap-1 sm:gap-2"
+                  title="Logout"
+                >
+                  🚪 <span className="hidden sm:inline">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <Link 
+                href="/login"
+                className="h-8 sm:h-9 px-3 sm:px-4 flex items-center justify-center text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-lg shadow-blue-500/20"
+              >
+                Login
+              </Link>
+            )}
           </div>
+
         </div>
       </div>
     </nav>

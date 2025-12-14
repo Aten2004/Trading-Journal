@@ -7,7 +7,8 @@ import {
 import TradesTable from '../components/TradesTable';
 import Navbar from '../components/Navbar';
 import TradingInsights from '../components/TradingInsights';
-import { useLanguage } from '../context/LanguageContext'; // ✅ Import Hook
+import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 interface Trade {
   id: string;
@@ -35,21 +36,27 @@ interface Trade {
 
 export default function Dashboard() {
   const { t } = useLanguage(); 
+  const { user } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    fetchTrades();
-    const interval = setInterval(fetchTrades, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (user) {
+        fetchTrades(1, true); // โหลดหน้า 1 ใหม่เสมอเมื่อ user เปลี่ยน
+    }
+  }, [user]);
 
   const handleExportExcel = async () => {
+    if (!user) return; // กันเหนียว
     setExporting(true);
     try {
-        const response = await fetch('/api/export-excel');
+        // ส่งชื่อ User ไปด้วยตอน Export (ถ้า API Export รองรับ)
+        const response = await fetch(`/api/export-excel?username=${user.username}`);
         if (response.ok) {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
@@ -70,17 +77,31 @@ export default function Dashboard() {
     }
   };
 
-  const fetchTrades = async () => {
+  // ปรับแก้ฟังก์ชัน fetchTrades ให้รับ page ได้
+  const fetchTrades = async (pageNum: number, isRefresh = false) => {
+    if (!user) return;
     try {
-      const response = await fetch('/api/get-trades');
+      if (pageNum === 1) setLoading(true);
+      else setLoadingMore(true);
+
+      // เรียก API แบบส่ง page และ limit
+      const response = await fetch(`/api/get-trades?user=${user.username}&page=${pageNum}&limit=20`);
       const result = await response.json();
+
       if (result.success) {
-        setTrades(result.trades);
+        if (isRefresh || pageNum === 1) {
+            setTrades(result.trades); // ถ้าโหลดใหม่ ให้ทับของเดิม
+        } else {
+            setTrades(prev => [...prev, ...result.trades]); // ถ้าโหลดเพิ่ม ให้ต่อท้าย
+        }
+        setHasMore(result.hasMore);
+        setPage(pageNum);
       }
     } catch (error) {
       console.error('Error fetching trades:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -91,10 +112,12 @@ export default function Dashboard() {
   const breakEvenTrades = trades.filter((t) => parseFloat(t.pnl || '0') === 0).length;
   const winRate = totalTrades > 0 ? ((winningTrades / totalTrades) * 100).toFixed(1) : '0';
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchTrades();
-    setRefreshing(false);
+  const handleLoadMore = () => {
+      fetchTrades(page + 1);
+  };
+
+  const handleRefresh = () => {
+      fetchTrades(1, true);
   };
   
   // Time Analysis for Chart
@@ -275,6 +298,22 @@ export default function Dashboard() {
         <div className="mb-8">
           <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">{t('dash_table_title')}</h3>
           <TradesTable trades={trades} onRefresh={handleRefresh} />
+
+          {hasMore && (
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-sm font-medium transition-colors border border-slate-600 flex items-center gap-2"
+              >
+                {loadingMore ? (
+                    <>⏳</>
+                ) : (
+                    <>⬇️</>
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Chart Section */}

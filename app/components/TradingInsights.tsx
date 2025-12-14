@@ -28,8 +28,16 @@ interface TradingInsightsProps {
   trades: Trade[];
 }
 
+const translateDay = (day: string, lang: string) => {
+  const days: { [key: string]: string } = {
+    'Sunday': 'วันอาทิตย์', 'Monday': 'วันจันทร์', 'Tuesday': 'วันอังคาร',
+    'Wednesday': 'วันพุธ', 'Thursday': 'วันพฤหัสบดี', 'Friday': 'วันศุกร์', 'Saturday': 'วันเสาร์'
+  };
+  return lang === 'th' ? days[day] || day : day;
+};
+
 export default function TradingInsights({ trades }: TradingInsightsProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   if (!trades || trades.length === 0) return null;
 
   // --- Helpers ---
@@ -406,7 +414,7 @@ export default function TradingInsights({ trades }: TradingInsightsProps) {
                 <div>
                   <strong className="text-green-300 block">{t('insight_day_title')}</strong>
                   <span className="text-slate-400 text-xs block mt-0.5">
-                    {t('insight_day_desc')} <strong>{bestDay}</strong> {t('insight_day_desc_end')}
+                    {t('insight_day_desc')} <strong>{translateDay(bestDay, language)}</strong> {t('insight_day_desc_end')}
                   </span>
                 </div>
               </li>

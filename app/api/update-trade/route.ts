@@ -1,95 +1,82 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGoogleSheet, calculateRR, calculateHoldingTime, calculatePnlPct, calculatePnl } from '@/lib/googleSheets'; // ✅ เพิ่ม calculatePnl
+import { getGoogleSheet, calculateRR, calculatePnl, calculatePnlPct, calculateHoldingTime } from '@/lib/googleSheets';
 
 export async function PUT(request: NextRequest) {
   try {
-    const data = await request.json();
-    const { id, ...updateData } = data;
+    const body = await request.json();
+    const { id, field, value, username } = body;
 
-    const sheet = await getGoogleSheet();
+    // 1. ตรวจสอบข้อมูลเบื้องต้น
+    if (!id || !field || value === undefined || !username) {
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const sheet = await getGoogleSheet('Trades');
     const rows = await sheet.getRows();
-    const rowToUpdate = rows.find((row) => row.get('id') === id);
 
-    if (!rowToUpdate) {
+    // 2. ค้นหาแถวที่ต้องการแก้ไขจาก ID
+    const row = rows.find((r) => r.get('id') === id);
+
+    if (!row) {
       return NextResponse.json({ success: false, error: 'Trade not found' }, { status: 404 });
     }
 
-    const entryPrice = parseFloat(updateData.entry_price);
-    const exitPrice = parseFloat(updateData.exit_price);
-    const positionSize = parseFloat(updateData.position_size);
-    const sl = parseFloat(updateData.sl);
-    const tp = parseFloat(updateData.tp);
-
-    // คำนวณ R:R
-    let rr = updateData.risk_reward_ratio || '';
-    if (!isNaN(entryPrice) && !isNaN(sl) && !isNaN(tp) && updateData.direction) {
-      try {
-        const rrValue = calculateRR(entryPrice, sl, tp, updateData.direction);
-        if (!isNaN(rrValue) && isFinite(rrValue)) rr = rrValue.toFixed(2);
-      } catch (e) { console.error(e); }
+    // 3. 🛡️ ระบบ Auto-Claim: ถ้าไม่มีเจ้าของ ให้ยึดเป็นของเราทันที
+    const currentOwner = row.get('username');
+    if (!currentOwner) {
+        row.set('username', username); // ใส่ชื่อเราลงไป
+    } else if (currentOwner !== username) {
+        // ถ้ามีเจ้าของแล้ว และไม่ใช่เรา -> ห้ามแก้
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
     }
 
-    // คำนวณ P&L Amount และ % ใหม่
-    let pnlAmount = updateData.pnl || '';
-    let pnlPct = updateData.pnl_pct || '';
-    
-    if (!isNaN(entryPrice) && !isNaN(exitPrice) && updateData.direction) {
-        pnlPct = calculatePnlPct(entryPrice, exitPrice, updateData.direction);
+    // 4. อัปเดตค่าที่ส่งมา
+    row.set(field, value);
+
+    // 5. 🔄 คำนวณค่าต่างๆ ใหม่ (ใช้ค่าเดิมผสมค่าใหม่ เพื่อกันข้อมูลหาย)
+    if (['entry_price', 'exit_price', 'position_size', 'sl', 'tp', 'open_date', 'close_date', 'open_time', 'close_time', 'direction'].includes(field)) {
         
-        if (!isNaN(positionSize)) {
-            pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, updateData.direction);
+        // ดึงค่าปัจจุบันจาก Row (ถ้า field ไหนถูกแก้ มันจะใช้ค่าใหม่ที่เพิ่ง set ไปข้างบน)
+        const entry = parseFloat(row.get('entry_price')) || 0;
+        const exit = parseFloat(row.get('exit_price')) || 0;
+        const size = parseFloat(row.get('position_size')) || 0;
+        const sl = parseFloat(row.get('sl')) || 0;
+        const tp = parseFloat(row.get('tp')) || 0;
+        const dir = row.get('direction');
+
+        // คำนวณ RR
+        if (entry && sl && tp && dir) {
+            const rr = calculateRR(entry, sl, tp, dir);
+            row.set('risk_reward_ratio', isFinite(rr) ? rr.toFixed(2) : '');
+        }
+
+        // คำนวณ PnL
+        if (entry && exit && size && dir) {
+            const pnl = calculatePnl(entry, exit, size, dir);
+            const pct = calculatePnlPct(entry, exit, dir);
+            row.set('pnl', pnl);
+            row.set('pnl_pct', pct);
+        }
+
+        // คำนวณเวลาที่ถือ
+        const oDate = row.get('open_date');
+        const oTime = row.get('open_time');
+        const cDate = row.get('close_date') || oDate; 
+        const cTime = row.get('close_time');
+
+        if (oDate && oTime && cTime) {
+            const timeStr = calculateHoldingTime(`${oDate}T${oTime}`, `${cDate}T${cTime}`);
+            row.set('holding_time', timeStr);
         }
     }
 
-    // คำนวณ Holding Time
-    let holdingTime = updateData.holding_time || '';
-    if (updateData.open_date && updateData.open_time && updateData.close_time) {
-        const closeDate = updateData.close_date || updateData.open_date;
-        holdingTime = calculateHoldingTime(
-          `${updateData.open_date}T${updateData.open_time}`,
-          `${closeDate}T${updateData.close_time}`
-        );
-    }
+    // 6. บันทึกลง Google Sheet
+    await row.save();
 
-    // อัพเดทข้อมูลลง Sheet
-    rowToUpdate.set('open_date', updateData.open_date || '');
-    rowToUpdate.set('close_date', updateData.close_date || '');
-    rowToUpdate.set('open_time', updateData.open_time || '');
-    rowToUpdate.set('close_time', updateData.close_time || '');
-    rowToUpdate.set('symbol', updateData.symbol || '');
-    rowToUpdate.set('direction', updateData.direction || '');
-    rowToUpdate.set('position_size', updateData.position_size || '');
-    rowToUpdate.set('entry_price', updateData.entry_price || '');
-    rowToUpdate.set('sl', updateData.sl || '');
-    rowToUpdate.set('tp', updateData.tp || '');
-    rowToUpdate.set('exit_price', updateData.exit_price || '');
-    rowToUpdate.set('pnl', pnlAmount);
-    rowToUpdate.set('pnl_pct', pnlPct);
-    rowToUpdate.set('strategy', updateData.strategy || '');
-    rowToUpdate.set('risk_reward_ratio', rr);
-    rowToUpdate.set('holding_time', holdingTime);
-    rowToUpdate.set('emotion', updateData.emotion || '');
-    rowToUpdate.set('main_mistake', updateData.main_mistake || '');
-    rowToUpdate.set('followed_plan', updateData.followed_plan || 'false');
-    rowToUpdate.set('notes', updateData.notes || '');
+    return NextResponse.json({ success: true, message: 'Trade updated successfully' });
 
-    await rowToUpdate.save();
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Trade updated successfully',
-      trade: {
-        id,
-        ...updateData,
-        pnl: pnlAmount,
-        pnl_pct: pnlPct,
-        risk_reward_ratio: rr,
-        holding_time: holdingTime,
-      }
-    });
-
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error updating trade:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

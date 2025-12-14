@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import Navbar from './components/Navbar';
-import { useLanguage } from './context/LanguageContext'; // ✅ Import Hook
+import { useLanguage } from './context/LanguageContext';
+import { useAuth } from './context/AuthContext';
 
 export default function Home() {
-  const { t } = useLanguage(); // ✅ เรียกใช้ฟังก์ชันแปลภาษา
+  const { t } = useLanguage(); 
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     open_date: '', 
@@ -19,7 +21,7 @@ export default function Home() {
     exit_price: '',
     sl: '',
     tp: '',
-    pnl: '', // เก็บไว้เป็น field ว่าง (backend คำนวณเอง)
+    pnl: '',
     pnl_pct: '',
     strategy: 'Trend Following',
     emotion: '',
@@ -33,6 +35,12 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      alert('กรุณาเข้าสู่ระบบก่อนบันทึกข้อมูล / Please login first');
+      return;
+    }
+
     setIsSubmitting(true);
     setMessage('');
 
@@ -40,13 +48,16 @@ export default function Home() {
       const response = await fetch('/api/add-trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          username: user.username 
+        }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        setMessage(t('msg_success')); // ✅ ใช้ตัวแปรภาษา
+        setMessage(t('msg_success')); 
         setFormData({
           open_date: '', close_date: '', open_time: '', close_time: '',
           symbol: 'XAUUSD', direction: 'Buy', position_size: '',

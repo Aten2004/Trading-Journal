@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { v4 as uuidv4 } from 'uuid';
 import { getGoogleSheet, calculateRR, calculateHoldingTime, calculatePnlPct, calculatePnl } from '@/lib/googleSheets';
 
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    const sheet = await getGoogleSheet();
+    
+    // ✅ เช็คว่าส่ง username มาด้วยไหม (จำเป็นมาก)
+    if (!data.username) {
+        return NextResponse.json({ success: false, error: 'Missing username' }, { status: 400 });
+    }
 
-    // ตัวแปรสำหรับเก็บค่าที่คำนวณ
+    const sheet = await getGoogleSheet('Trades');
+
     let rr = '';
     let pnlPct = '';
     let pnlAmount = '';
@@ -17,44 +23,30 @@ export async function POST(request: NextRequest) {
     const sl = parseFloat(data.sl);
     const tp = parseFloat(data.tp);
 
-    // คำนวณ Risk/Reward Ratio
     if (!isNaN(entryPrice) && !isNaN(sl) && !isNaN(tp) && data.direction) {
       try {
         const rrValue = calculateRR(entryPrice, sl, tp, data.direction);
-        if (!isNaN(rrValue) && isFinite(rrValue)) {
-          rr = rrValue.toFixed(2);
-        }
-      } catch (error) {
-        console.error('Error calculating R:R:', error);
-      }
+        if (!isNaN(rrValue) && isFinite(rrValue)) rr = rrValue.toFixed(2);
+      } catch (error) { console.error('Error RR', error); }
     }
 
-    // คำนวณ P&L % และ P&L Amount อัตโนมัติ
     if (!isNaN(entryPrice) && !isNaN(exitPrice) && data.direction) {
        pnlPct = calculatePnlPct(entryPrice, exitPrice, data.direction);
-       
-       if (!isNaN(positionSize)) {
-         pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, data.direction);
-       }
+       if (!isNaN(positionSize)) pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, data.direction);
     }
 
-    // คำนวณ Holding Time
     let holdingTime = '';
     if (data.open_date && data.open_time && data.close_time) {
       try {
         const closeDate = data.close_date || data.open_date;
-        holdingTime = calculateHoldingTime(
-          `${data.open_date}T${data.open_time}`,
-          `${closeDate}T${data.close_time}`
-        );
-      } catch (error) {
-        console.error('Error calculating holding time:', error);
-      }
+        holdingTime = calculateHoldingTime(`${data.open_date}T${data.open_time}`, `${closeDate}T${data.close_time}`);
+      } catch (error) { console.error('Error holding time', error); }
     }
 
-    // เตรียมข้อมูลสำหรับบันทึก
+    // เตรียมข้อมูลบันทึก
     const rowData = {
-      id: Date.now().toString(),
+      id: uuidv4(),
+      username: data.username, 
       open_date: data.open_date || '',
       close_date: data.close_date || '',
       open_time: data.open_time || '',
@@ -77,16 +69,12 @@ export async function POST(request: NextRequest) {
       notes: data.notes || '',
     };
 
-    console.log('Data to be saved:', rowData);
     await sheet.addRow(rowData);
 
     return NextResponse.json({ success: true, message: 'Trade added successfully' });
 
   } catch (error) {
     console.error('Error adding trade:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to add trade', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to add trade' }, { status: 500 });
   }
 }

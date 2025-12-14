@@ -1,14 +1,25 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getGoogleSheet, calculatePnlPct, calculatePnl } from '@/lib/googleSheets';
 import ExcelJS from 'exceljs';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const sheet = await getGoogleSheet();
+    // 1. รับค่า Username จาก URL
+    const username = request.nextUrl.searchParams.get('username');
+
+    if (!username) {
+      return NextResponse.json({ success: false, error: 'Username is required' }, { status: 400 });
+    }
+
+    // ✅ แก้ไขจุดที่ 1: ต้องระบุชื่อ Sheet ว่า 'Trades' เพื่อให้ดึงข้อมูลถูก Tab
+    const sheet = await getGoogleSheet('Trades');
     const rows = await sheet.getRows();
 
-    // 1. เตรียมข้อมูล
-    const trades = rows.map((row) => {
+    // 2. กรองข้อมูล: เอาเฉพาะแถวที่เป็นของ Username นี้
+    const userRows = rows.filter((row) => row.get('username') === username);
+
+    // 3. เตรียมข้อมูลสำหรับลง Excel
+    const trades = userRows.map((row) => {
       const entry = parseFloat(row.get('entry_price') || '0');
       const exit = parseFloat(row.get('exit_price') || '0');
       const size = parseFloat(row.get('position_size') || '0');
@@ -16,6 +27,7 @@ export async function GET() {
       
       let pnl = parseFloat(row.get('pnl') || '0');
       
+      // คำนวณ PnL เผื่อใน Sheet ยังไม่ได้บันทึกค่านี้
       if (entry && exit && dir && pnl === 0) {
          const pnlStr = calculatePnl(entry, exit, size, dir);
          pnl = parseFloat(pnlStr);
@@ -34,38 +46,32 @@ export async function GET() {
         mistake: row.get('main_mistake'),
         notes: row.get('notes'),
       };
-    }).reverse();
+    }).reverse(); // เรียงจากใหม่ไปเก่า
 
-    // 2. คำนวณสถิติสรุป (แก้ไขส่วนนี้)
+    // --- ส่วนการสร้างไฟล์ Excel (เหมือนเดิม) ---
     const totalTrades = trades.length;
     const wins = trades.filter(t => t.pnl > 0).length;
-    // const losses = trades.filter(t => t.pnl < 0).length; // ไม่ได้ใช้แล้ว
     const totalPnL = trades.reduce((sum, t) => sum + t.pnl, 0);
     const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
 
-    // --- FIX: คำนวณ Profit Factor ที่ถูกต้อง (Gross Profit / Gross Loss) ---
     const grossProfit = trades.filter(t => t.pnl > 0).reduce((sum, t) => sum + t.pnl, 0);
     const grossLoss = Math.abs(trades.filter(t => t.pnl < 0).reduce((sum, t) => sum + t.pnl, 0));
     
-    // ถ้าขาดทุนเป็น 0 และมีกำไร ให้เป็น Infinity (∞), ถ้าไม่มีทั้งคู่ให้เป็น 0.00
     const profitFactor = grossLoss > 0 ? (grossProfit / grossLoss).toFixed(2) : (grossProfit > 0 ? '∞' : '0.00');
-    // -------------------------------------------------------------------
 
-    // 3. สร้าง Workbook และ Worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Trading Journal');
 
-    // --- ส่วนที่ 1: Header สรุปข้อมูล ---
+    // Header Summary
     worksheet.mergeCells('B2:E2');
     const titleCell = worksheet.getCell('B2');
-    titleCell.value = '📊 Trading Performance Summary';
+    titleCell.value = `📊 Trading Performance: ${username}`;
     titleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; 
     titleCell.alignment = { horizontal: 'center' };
 
     const stats = [
       ['Total Trades', totalTrades, 'Win Rate', `${winRate.toFixed(1)}%`],
-      // ใช้ตัวแปร profitFactor ที่คำนวณใหม่
       ['Total P&L', `${totalPnL.toFixed(2)} USD`, 'Profit Factor', profitFactor]
     ];
 
@@ -89,7 +95,6 @@ export async function GET() {
         }
     });
 
-    // ... (โค้ดส่วนสร้างตารางด้านล่างเหมือนเดิม ไม่ต้องแก้) ...
     ['B3', 'C3', 'D3', 'E3', 'B4', 'C4', 'D4', 'E4'].forEach(cell => {
         worksheet.getCell(cell).border = {
             top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' }
@@ -157,10 +162,12 @@ export async function GET() {
 
     const buffer = await workbook.xlsx.writeBuffer();
 
+    // ส่งไฟล์กลับ
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename="Trading_Journal_Summary.xlsx"',
+        // ใช้ encodeURIComponent เพื่อรองรับชื่อที่มีเว้นวรรคหรือภาษาไทย
+        'Content-Disposition': `attachment; filename="Trading_Journal_${encodeURIComponent(username)}.xlsx"`, 
       },
     });
 
