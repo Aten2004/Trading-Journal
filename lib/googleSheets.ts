@@ -25,7 +25,6 @@ export async function getGoogleSheet() {
     
     console.log('Connected to Google Sheet:', doc.title);
     
-    // ดึงชีตแรก หรือชีตที่ชื่อ 'Trades'
     const sheet = doc.sheetsByTitle['Trades'] || doc.sheetsByIndex[0];
     
     if (!sheet) {
@@ -91,7 +90,7 @@ export function calculateHoldingTime(openTime: string, closeTime: string): strin
   }
 }
 
-// ✅ เพิ่มฟังก์ชันคำนวณ P&L % (Price Change %)
+// เพิ่มฟังก์ชันคำนวณ P&L % (Price Change %)
 export function calculatePnlPct(
   entry: number,
   exit: number,
@@ -114,7 +113,7 @@ export function calculatePnlPct(
   }
 }
 
-// ✅ เพิ่มฟังก์ชันคำนวณ P&L Amount (เงิน)
+// เพิ่มฟังก์ชันคำนวณ P&L Amount (เงิน)
 export function calculatePnl(
   entry: number,
   exit: number,
