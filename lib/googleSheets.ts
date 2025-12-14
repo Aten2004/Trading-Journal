@@ -1,45 +1,69 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 
-// ฟังก์ชันเชื่อมต่อ Google Sheets (สำหรับ google-spreadsheet v5+)
-export async function getGoogleSheet() {
+export async function getGoogleSheet(sheetTitle: string = 'Trades') {
+  // ✅ 1. เช็คก่อนว่าตั้งค่า .env ครบไหม (ป้องกัน Error 500 แบบงงๆ)
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_SHEETS_ID) {
+    throw new Error('❌ Missing Google Sheets Environment Variables. Please check .env.local');
+  }
+
   try {
-    // สร้าง JWT client สำหรับ Service Account Authentication
+    // ✅ 2. เตรียมการเชื่อมต่อ (แก้ปัญหา \n ใน Private Key)
     const serviceAccountAuth = new JWT({
       email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
       scopes: [
         'https://www.googleapis.com/auth/spreadsheets',
         'https://www.googleapis.com/auth/drive.file',
       ],
     });
 
-    // สร้าง GoogleSpreadsheet instance
     const doc = new GoogleSpreadsheet(
-      process.env.GOOGLE_SHEETS_ID!,
+      process.env.GOOGLE_SHEETS_ID,
       serviceAccountAuth
     );
 
-    // โหลดข้อมูล document
+    // ✅ 3. โหลดข้อมูล Sheet
     await doc.loadInfo();
     
-    console.log('Connected to Google Sheet:', doc.title);
+    // ลองดึง Sheet ตามชื่อ
+    let sheet = doc.sheetsByTitle[sheetTitle];
     
-    // ดึงชีตแรก หรือชีตที่ชื่อ 'Trades'
-    const sheet = doc.sheetsByTitle['Trades'] || doc.sheetsByIndex[0];
-    
+    // 🔥 4. ระบบแก้ปัญหาอัตโนมัติ: ถ้าหา Tab "Users" ไม่เจอ -> สร้างให้เลย!
+    if (!sheet && sheetTitle === 'Users') {
+      console.log('⚠️ ไม่พบ Tab "Users" - กำลังสร้างให้ใหม่...');
+      try {
+        sheet = await doc.addSheet({ 
+            title: 'Users', 
+            headerValues: ['id', 'username', 'password', 'created_at'] 
+        });
+        console.log('✅ สร้าง Tab "Users" เรียบร้อยแล้ว!');
+      } catch (e) {
+        console.error('Failed to create Users sheet:', e);
+      }
+    }
+
+    // 🔥 5. Fallback: ถ้าหา Tab "Trades" ไม่เจอ ให้ใช้อันแรกสุดแก้ขัดไปก่อน
     if (!sheet) {
-      throw new Error('Sheet "Trades" not found in the Google Spreadsheet');
+      if (sheetTitle === 'Trades' && doc.sheetsByIndex[0]) {
+          console.log('⚠️ ไม่พบ Tab "Trades" โดยตรง - ระบบจะใช้ Tab แรกสุดแทน');
+          return doc.sheetsByIndex[0];
+      }
+      // Debug: ปริ้นชื่อ Tab ทั้งหมดที่มีออกมาดู
+      console.log('Tabs ที่มีอยู่จริง:', doc.sheetsByIndex.map(s => s.title));
+      throw new Error(`Sheet "${sheetTitle}" not found. Available sheets: ${doc.sheetsByIndex.map(s => s.title).join(', ')}`);
     }
 
     return sheet;
+
   } catch (error) {
-    console.error('Error connecting to Google Sheets:', error);
-    throw error;
+    console.error('❌ Error connecting to Google Sheets:', error);
+    throw error; // ส่ง Error ต่อไปให้ API รู้เรื่อง
   }
 }
 
-// ฟังก์ชันคำนวณ Risk/Reward Ratio
+// --- ฟังก์ชันคำนวณ (Helper Functions) ---
+
 export function calculateRR(
   entry: number,
   sl: number,
@@ -63,11 +87,12 @@ export function calculateRR(
   }
 }
 
-// ฟังก์ชันคำนวณ Holding Time (แสดงเป็น m / h m / d h)
 export function calculateHoldingTime(openTime: string, closeTime: string): string {
   try {
-    const open = new Date(openTime);
+    // แปลง string เป็น Date Object เพื่อคำนวณ
+    const open = new Date(openTime); // รองรับทั้ง "2023-01-01" และ "2023-01-01T10:00:00"
     const close = new Date(closeTime);
+    
     const diffMs = close.getTime() - open.getTime();
 
     if (isNaN(diffMs) || diffMs <= 0) return '';
@@ -86,12 +111,11 @@ export function calculateHoldingTime(openTime: string, closeTime: string): strin
     const remainHours = totalHours % 24;
     return remainHours === 0 ? `${totalDays}d` : `${totalDays}d ${remainHours}h`;
   } catch (error) {
-    console.error('Error calculating holding time:', error);
+    // ไม่ต้อง error log ถี่เกินไปกรณีคำนวณไม่ได้ (เช่น วันที่ยังไม่ครบ)
     return '';
   }
 }
 
-// ✅ เพิ่มฟังก์ชันคำนวณ P&L % (Price Change %)
 export function calculatePnlPct(
   entry: number,
   exit: number,
@@ -114,7 +138,6 @@ export function calculatePnlPct(
   }
 }
 
-// ✅ เพิ่มฟังก์ชันคำนวณ P&L Amount (เงิน)
 export function calculatePnl(
   entry: number,
   exit: number,
