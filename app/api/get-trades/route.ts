@@ -88,4 +88,4 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching trades:', error);
     return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
   }
-}
+} 

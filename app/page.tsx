@@ -26,7 +26,7 @@ export default function Home() {
     strategy: 'Trend Following',
     emotion: '',
     main_mistake: 'No Mistake',
-    followed_plan: 'true',
+    followed_plan: 'Yes',
     notes: '',
   });
 
@@ -64,7 +64,7 @@ export default function Home() {
           entry_price: '', exit_price: '', sl: '', tp: '',
           pnl: '', pnl_pct: '', strategy: 'Trend Following',
           emotion: '', main_mistake: 'No Mistake',
-          followed_plan: 'true', notes: '',
+          followed_plan: 'Yes', notes: '',
         });
       } else {
         setMessage(t('msg_error') + result.error);
@@ -221,11 +221,11 @@ export default function Home() {
                     {t('label_strategy')} <span className="text-slate-500">{t('opt_optional')}</span>
                     </label>
                     <select name="strategy" value={formData.strategy} onChange={handleChange} className="input-field">
-                      <option>Trend Following</option>
-                      <option>Grid</option>
-                      <option>Scalping</option>
-                      <option>Breakout</option>
-                      <option>Range Trading</option>
+                      <option value="Trend Following">{t('opt_strat_trend')}</option>
+                      <option value="Grid">{t('opt_strat_grid')}</option>
+                      <option value="Scalping">{t('opt_strat_scalp')}</option>
+                      <option value="Breakout">{t('opt_strat_break')}</option>
+                      <option value="Range Trading">{t('opt_strat_range')}</option>
                     </select>
                 </div>
             </div>
@@ -244,13 +244,13 @@ export default function Home() {
                   {t('label_mistake')}
                 </label>
                 <select name="main_mistake" value={formData.main_mistake} onChange={handleChange} className="input-field">
-                  <option>No Mistake</option>
-                  <option>No SL</option>
-                  <option>Oversize</option>
-                  <option>Overtrade</option>
-                  <option>FOMO</option>
-                  <option>Revenge</option>
-                  <option>No Plan</option>
+                  <option value="No Mistake">{t('opt_mis_no_mistake')}</option>
+                  <option value="No SL">{t('opt_mis_no_sl')}</option>
+                  <option value="Oversize">{t('opt_mis_oversize')}</option>
+                  <option value="Overtrade">{t('opt_mis_overtrade')}</option>
+                  <option value="FOMO">{t('opt_mis_fomo')}</option>
+                  <option value="Revenge">{t('opt_mis_revenge')}</option>
+                  <option value="No Plan">{t('opt_mis_no_plan')}</option>
                 </select>
               </div>
 
@@ -258,9 +258,14 @@ export default function Home() {
                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                   {t('label_plan')}
                 </label>
-                <select name="followed_plan" value={formData.followed_plan} onChange={handleChange} className="input-field">
-                  <option value="true">Yes ✓</option>
-                  <option value="false">No ✗</option>
+                <select 
+                  name="followed_plan" 
+                  value={formData.followed_plan} 
+                  onChange={handleChange} 
+                  className="input-field"
+                >
+                  <option value="Yes">Yes ✓</option>
+                  <option value="No">No ✗</option>
                 </select>
               </div>
             </div>

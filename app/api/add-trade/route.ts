@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       holding_time: holdingTime,
       emotion: data.emotion || '',
       main_mistake: data.main_mistake || '',
-      followed_plan: data.followed_plan || 'false',
+      followed_plan: data.followed_plan || 'Yes',
       notes: data.notes || '',
     };
 
@@ -76,4 +76,4 @@ export async function POST(request: NextRequest) {
     console.error('Error adding trade:', error);
     return NextResponse.json({ success: false, error: 'Failed to add trade' }, { status: 500 });
   }
-}
+} 

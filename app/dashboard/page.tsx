@@ -80,29 +80,53 @@ export default function Dashboard() {
   // ปรับแก้ฟังก์ชัน fetchTrades ให้รับ page ได้
   const fetchTrades = async (pageNum: number, isRefresh = false) => {
     if (!user) return;
-    try {
-      if (pageNum === 1) setLoading(true);
-      else setLoadingMore(true);
 
-      // เรียก API แบบส่ง page และ limit
+    try {
+      if (pageNum === 1 && !isRefresh) setLoading(true);
+      else if (pageNum > 1 && !isRefresh) setLoadingMore(true);
+
       const response = await fetch(`/api/get-trades?user=${user.username}&page=${pageNum}&limit=20`);
       const result = await response.json();
 
       if (result.success) {
-        if (isRefresh || pageNum === 1) {
-            setTrades(result.trades); // ถ้าโหลดใหม่ ให้ทับของเดิม
+        if (isRefresh) {
+          // refresh ให้แทนที่ trades ด้วยของ page นี้
+          setTrades(result.trades);
         } else {
-            setTrades(prev => [...prev, ...result.trades]); // ถ้าโหลดเพิ่ม ให้ต่อท้าย
+          // โหลดเพิ่ม
+          setTrades(prev => pageNum === 1 ? result.trades : [...prev, ...result.trades]);
         }
         setHasMore(result.hasMore);
-        setPage(pageNum);
+        setPage(pageNum); 
       }
-    } catch (error) {
-      console.error('Error fetching trades:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
+  };
+
+  const getStratTrans = (key: string) => {
+    const map: {[key: string]: string} = {
+        'Trend Following': t('opt_strat_trend'),
+        'Grid': t('opt_strat_grid'),
+        'Scalping': t('opt_strat_scalp'),
+        'Breakout': t('opt_strat_break'),
+        'Range Trading': t('opt_strat_range'),
+    };
+    return map[key] || key;
+  };
+
+  const getMistakeTrans = (key: string) => {
+    const map: {[key: string]: string} = {
+        'No Mistake': t('opt_mis_no_mistake'),
+        'No SL': t('opt_mis_no_sl'),
+        'Oversize': t('opt_mis_oversize'),
+        'Overtrade': t('opt_mis_overtrade'),
+        'FOMO': t('opt_mis_fomo'),
+        'Revenge': t('opt_mis_revenge'),
+        'No Plan': t('opt_mis_no_plan'),
+    };
+    return map[key] || key;
   };
 
   // --- Statistics Calculations ---
@@ -116,8 +140,9 @@ export default function Dashboard() {
       fetchTrades(page + 1);
   };
 
-  const handleRefresh = () => {
-      fetchTrades(1, true);
+  const handleRefresh = (targetPage?: number) => {
+    const pageToLoad = targetPage ?? page;
+    fetchTrades(pageToLoad, true);
   };
   
   // Time Analysis for Chart
@@ -170,7 +195,9 @@ export default function Dashboard() {
     : '0';
 
   // Plan & Psychology
-  const planFollowedCount = trades.filter(t => String(t.followed_plan).toLowerCase() === 'true').length;
+  const planFollowedCount = trades.filter(t => 
+    ['true', 'yes'].includes(String(t.followed_plan).toLowerCase())
+  ).length;
   const planAdherence = totalTrades > 0 ? ((planFollowedCount / totalTrades) * 100).toFixed(1) : '0';
 
   const mistakeCount: { [key: string]: number } = {};
@@ -446,11 +473,15 @@ export default function Dashboard() {
         <div className="mb-8">
           <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">{t('dash_psycho_title')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+            
+            {/* Common Mistake Card */}
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-700">
               <div className="text-slate-400 text-xs sm:text-sm mb-1">{t('stat_common_mistake')}</div>
               {topMistake ? (
                 <>
-                  <div className="text-xl sm:text-2xl font-bold text-red-400 mb-1">{topMistake[0]}</div>
+                  <div className="text-xl sm:text-2xl font-bold text-red-400 mb-1">
+                    {getMistakeTrans(topMistake[0])}
+                  </div>
                   <div className="text-[10px] sm:text-xs text-slate-500">{topMistake[1]} {t('unit_times')}</div>
                 </>
               ) : (
@@ -472,10 +503,14 @@ export default function Dashboard() {
               <div className="text-slate-400 text-xs sm:text-sm mb-1">{t('stat_best_strategy')}</div>
               {bestStrategy ? (
                 <>
-                  <div className="text-lg sm:text-xl font-bold text-purple-300 mb-1">{bestStrategy.name}</div>
-                  <div className="text-[10px] sm:text-xs text-slate-400">
-                    Win Rate: {bestStrategy.winRate}% • Avg: ${bestStrategy.avgPnl} • {bestStrategy.trades} {t('unit_trades')}
+                  <div className="text-lg sm:text-xl font-bold text-purple-300 mb-1">
+                    {getStratTrans(bestStrategy.name)}
                   </div>
+                  
+                  <div className="text-[10px] sm:text-xs text-slate-400">
+                    {t('stat_win_rate')}: {bestStrategy.winRate}% • {t('th_avg_pnl')}: ${bestStrategy.avgPnl} • {bestStrategy.trades} {t('unit_trades')}
+                  </div>
+                  
                 </>
               ) : (
                 <>
@@ -515,7 +550,7 @@ export default function Dashboard() {
                         const avgPnl = stats.pnl / stats.trades;
                         return (
                           <tr key={strategy} className="border-b border-slate-700/50 text-xs sm:text-sm">
-                            <td className="py-3 px-4 text-white">{strategy}</td>
+                            <td className="py-3 px-4 text-white">{getStratTrans(strategy)}</td>
                             <td className="py-3 px-4 text-slate-300">{stats.trades}</td>
                             <td className={`py-3 px-4 font-semibold ${winRate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
                               {winRate.toFixed(1)}%

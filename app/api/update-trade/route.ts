@@ -79,4 +79,4 @@ export async function PUT(request: NextRequest) {
     console.error('Error updating trade:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-}
+} 

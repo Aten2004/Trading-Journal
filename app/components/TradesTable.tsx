@@ -30,7 +30,7 @@ interface Trade {
 
 interface TradesTableProps {
   trades: Trade[];
-  onRefresh: () => Promise<void> | void;
+  onRefresh: (page?: number) => Promise<void> | void;
 }
 
 export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
@@ -53,12 +53,11 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
   };
 
   const handleSave = async (tradeId: string, field: string) => {
-    if (!user) return; // ต้องมี User
+    if (!user) return;
 
     const trade = trades.find((t) => t.id === tradeId);
     if (!trade) return;
 
-    // ถ้าค่าเหมือนเดิม ไม่ต้องส่งไปบันทึก
     if (String(trade[field as keyof Trade]) === editValue) {
         setEditingCell(null);
         return;
@@ -126,6 +125,32 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
     }
   };
 
+  const getTrans = (key: string, type: 'strat' | 'mistake') => {
+    if (type === 'strat') {
+        const map: {[key: string]: string} = {
+            'Trend Following': t('opt_strat_trend'),
+            'Grid': t('opt_strat_grid'),
+            'Scalping': t('opt_strat_scalp'),
+            'Breakout': t('opt_strat_break'),
+            'Range Trading': t('opt_strat_range'),
+        };
+        return map[key] || key;
+    }
+    if (type === 'mistake') {
+        const map: {[key: string]: string} = {
+            'No Mistake': t('opt_mis_no_mistake'),
+            'No SL': t('opt_mis_no_sl'),
+            'Oversize': t('opt_mis_oversize'),
+            'Overtrade': t('opt_mis_overtrade'),
+            'FOMO': t('opt_mis_fomo'),
+            'Revenge': t('opt_mis_revenge'),
+            'No Plan': t('opt_mis_no_plan'),
+        };
+        return map[key] || key;
+    }
+    return key;
+  };
+
   const truncateText = (text: string, maxLength: number = 30) => {
     if (!text) return '-';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
@@ -133,8 +158,9 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
 
   const renderEditableCell = (trade: Trade, field: keyof Trade) => {
     const isEditing = editingCell?.id === trade.id && editingCell?.field === field;
-    const value = trade[field] || '';
+    const value = trade[field];
 
+    // --- ส่วนการแก้ไข (Edit Mode) ---
     if (isEditing) {
       // Dropdown fields
       if (field === 'symbol') {
@@ -168,6 +194,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
           </select>
         );
       }
+
       if (field === 'strategy') {
         return (
           <select
@@ -177,15 +204,16 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             autoFocus
             className="w-full min-w-[100px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
-            <option>Trend Following</option>
-            <option>Grid</option>
-            <option>Scalping</option>
-            <option>Breakout</option>
-            <option>Range Trading</option>
+            <option value="Trend Following">{t('opt_strat_trend')}</option>
+            <option value="Grid">{t('opt_strat_grid')}</option>
+            <option value="Scalping">{t('opt_strat_scalp')}</option>
+            <option value="Breakout">{t('opt_strat_break')}</option>
+            <option value="Range Trading">{t('opt_strat_range')}</option>
           </select>
         );
       }
-      if (field === 'main_mistake') {
+      
+    if (field === 'main_mistake') {
         return (
           <select
             value={editValue}
@@ -194,16 +222,17 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             autoFocus
             className="w-full min-w-[100px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
-            <option value="No Mistake">{t('opt_no_mistake')}</option>
-            <option value="No SL">No SL</option>
-            <option value="Oversize">Oversize</option>
-            <option value="Overtrade">Overtrade</option>
-            <option value="FOMO">FOMO</option>
-            <option value="Revenge">Revenge</option>
-            <option value="No Plan">No Plan</option>
+            <option value="No Mistake">{t('opt_mis_no_mistake')}</option>
+            <option value="No SL">{t('opt_mis_no_sl')}</option>
+            <option value="Oversize">{t('opt_mis_oversize')}</option>
+            <option value="Overtrade">{t('opt_mis_overtrade')}</option>
+            <option value="FOMO">{t('opt_mis_fomo')}</option>
+            <option value="Revenge">{t('opt_mis_revenge')}</option>
+            <option value="No Plan">{t('opt_mis_no_plan')}</option>
           </select>
         );
       }
+
       if (field === 'followed_plan') {
         return (
           <select
@@ -211,10 +240,10 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => handleSave(trade.id, field)}
             autoFocus
-            className="w-full min-w-[60px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
+            className="w-full min-w-[80px] bg-slate-600 text-white rounded px-2 py-1 text-sm"
           >
-            <option value="true">{t('val_yes')}</option>
-            <option value="false">{t('val_no')}</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
           </select>
         );
       }
@@ -249,6 +278,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
         );
       }
 
+      // Default Input
       return (
         <input
           type={field.includes('date') ? 'date' : field.includes('time') ? 'time' : 'text'}
@@ -262,9 +292,34 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
       );
     }
 
+    // --- ส่วนการแสดงผล (Display Mode) ---
+
+    // 1. Followed Plan Logic
+    if (field === 'followed_plan') {
+        let displayPlan = 'No';
+        const valLower = String(value).toLowerCase();
+        if (valLower === 'yes' || valLower === 'true') {
+            displayPlan = 'Yes';
+        }
+
+        return (
+          <div
+            onClick={() => {
+              setEditingCell({ id: trade.id, field });
+              setEditValue(displayPlan); 
+            }}
+            className={`cursor-pointer hover:bg-slate-700/50 rounded px-2 py-1 min-h-[32px] flex items-center font-bold ${
+                displayPlan === 'Yes' ? 'text-green-400' : 'text-red-400'
+            }`}
+          >
+            {displayPlan}
+          </div>
+        );
+    }
+
     const displayValue = field === 'notes' ? truncateText(value, 30) : (value || '-');
 
-    // ✅ แสดงผลช่อง P&L Amount (Auto Calculated) + สี
+    // แสดงผลช่อง P&L Amount (Auto Calculated) + สี
     if (field === 'pnl' && value) {
         const numValue = parseFloat(value);
         const colorClass = numValue > 0 ? 'text-green-400 font-bold' : numValue < 0 ? 'text-red-400 font-bold' : 'text-slate-300';
@@ -275,7 +330,7 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
         );
     }
 
-    // ✅ แสดงผลช่อง P&L % (Auto Calculated) + สี
+    // แสดงผลช่อง P&L % (Auto Calculated) + สี
     if (field === 'pnl_pct' && value) {
         const numValue = parseFloat(value);
         const colorClass = numValue > 0 ? 'text-green-400' : numValue < 0 ? 'text-red-400' : 'text-slate-300';
@@ -298,11 +353,11 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
   };
 
   // Pagination
-  const reversedTrades = trades.slice().reverse();
-  const totalPages = Math.ceil(reversedTrades.length / itemsPerPage);
+  const displayTrades = trades;
+  const totalPages = Math.ceil(displayTrades.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentTrades = reversedTrades.slice(startIndex, endIndex);
+  const currentTrades = displayTrades.slice(startIndex, endIndex);
 
   if (loading) {
     return (
