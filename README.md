@@ -64,3 +64,71 @@
 
 ---
 พัฒนาโดย ภูริต เฟื่องฟู
+---
+
+# 📈 Trading Journal Web Application
+
+A web application for recording and analyzing trades (Trading Journal) developed with Next.js, focusing on simplicity and free usage by utilizing Google Sheets as a database.
+
+## ✨ Key Features
+
+* **📝 Trade Recording:**
+    * Supports comprehensive data entry including Symbol, Entry/Exit Price, SL/TP, and Position Size.
+    * Automatically calculates Profit/Loss (PnL), Growth %, Risk:Reward (R:R), and Holding Time.
+    * Records Psychology (Emotion) and Mistakes for later analysis.
+
+* **📊 Dashboard Analytics:**
+    * Summarizes key statistics: Win Rate, Profit Factor, Max Drawdown, and Average R:R.
+    * Line chart showing performance and profitability over time (Time Analysis Chart).
+    * Performance summary table broken down by strategy (Strategy Breakdown) to identify your best-performing strategies.
+
+* **🧠 Trading Insights (Behavioral Analysis):**
+    * Analyzes strengths/weaknesses and alerts on risky behaviors (Red Flags) such as Revenge Trading, missing Stop Loss, or frequent strategy hopping.
+
+* **💾 Database & Export:**
+    * Connects directly to Google Sheets, ensuring data safety and easy accessibility.
+    * Supports exporting trade history as an Excel file (.xlsx).
+
+* **🌐 Other Systems:**
+    * Supports 2 languages (Thai / English).
+    * User Authentication system (Login/Register) to manage data separately for each user.
+
+## 🛠️ Tech Stack
+
+* **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+* **Language:** [TypeScript](https://www.typescriptlang.org/)
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+* **Database:** Google Sheets (via `google-spreadsheet` API)
+* **Charts:** [Recharts](https://recharts.org/)
+* **Authentication:** Custom Auth (bcryptjs + JWT logic)
+
+## ⚙️ Installation and Usage
+
+1.  **Clone the project:**
+    ```bash
+    git clone [https://github.com/your-username/trading-journal.git](https://github.com/your-username/trading-journal.git)
+    cd trading-journal
+    ```
+
+2.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Setup Environment Variables:**
+    Create a `.env.local` file at the root directory and add your Google Service Account Config as follows:
+    ```env
+    GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email
+    GOOGLE_PRIVATE_KEY="your-private-key"
+    GOOGLE_SHEETS_ID=your-google-sheet-id
+    ```
+    *(Note: You must grant Editor access to the Service Account Email on your Google Sheet)*
+
+4.  **Run the project:**
+    ```bash
+    npm run dev
+    ```
+    Open your browser and navigate to `http://localhost:3000`
+
+---
+Developed by Phurit Fuengfu
