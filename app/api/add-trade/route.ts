@@ -12,6 +12,17 @@ export async function POST(request: NextRequest) {
 
     const sheet = await getGoogleSheet('Trades');
 
+    // ตั้งค่า Default วัน/เวลาปัจจุบัน ถ้าไม่ได้ส่งมา
+    const now = new Date();
+    // ดึงวันที่ปัจจุบัน (YYYY-MM-DD)
+    const defaultDate = now.toISOString().split('T')[0]; 
+    // ดึงเวลาปัจจุบัน (HH:MM)
+    const defaultTime = now.toTimeString().split(' ')[0].substring(0, 5); 
+
+    // ใช้ค่าที่ส่งมา หรือถ้าไม่มีให้ใช้ค่าปัจจุบัน
+    const openDate = data.open_date || defaultDate;
+    const openTime = data.open_time || defaultTime;
+
     let rr = '';
     let pnlPct = '';
     let pnlAmount = '';
@@ -35,10 +46,11 @@ export async function POST(request: NextRequest) {
     }
 
     let holdingTime = '';
-    if (data.open_date && data.open_time && data.close_time) {
+    // ใช้ openDate/openTime ที่มีค่าแน่นอนแล้ว มาคำนวณ
+    if (openDate && openTime && data.close_time) {
       try {
-        const closeDate = data.close_date || data.open_date;
-        holdingTime = calculateHoldingTime(`${data.open_date}T${data.open_time}`, `${closeDate}T${data.close_time}`);
+        const closeDate = data.close_date || openDate; // ถ้าไม่ใส่วันปิด ให้ใช้วันเดียวกับวันเปิด
+        holdingTime = calculateHoldingTime(`${openDate}T${openTime}`, `${closeDate}T${data.close_time}`);
       } catch (error) { console.error('Error holding time', error); }
     }
 
@@ -46,9 +58,9 @@ export async function POST(request: NextRequest) {
     const rowData = {
       id: uuidv4(),
       username: data.username, 
-      open_date: data.open_date || '',
+      open_date: openDate,   
+      open_time: openTime,    
       close_date: data.close_date || '',
-      open_time: data.open_time || '',
       close_time: data.close_time || '',
       symbol: data.symbol || '',
       direction: data.direction || '',
