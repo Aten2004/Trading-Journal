@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from './components/Navbar';
 import { useLanguage } from './context/LanguageContext';
 import { useAuth } from './context/AuthContext';
@@ -8,39 +9,96 @@ import { useAuth } from './context/AuthContext';
 export default function Home() {
   const { t } = useLanguage(); 
   const { user } = useAuth();
+  const router = useRouter();
+
+  const TIME_FRAMES = [
+    'M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W1', 'MN'
+  ];
+
+  const STRATEGIES = [
+    'Reversal',         // แนวเด้ง
+    'High Conviction',  // ไม้รวย
+    'Smart Money',      // ตามเจ้า
+    'Trend Following',  // (ของเดิม)
+    'Breakout',         // (ของเดิม)
+    'Scalping',         // (ของเดิม)
+    'Grid'              // (ของเดิม)
+  ];
+
+  const CHART_PATTERNS = [
+    'Unclear',      // ไม่ชัดเจน (Default)
+    'Uptrend',      // เทรนขึ้น
+    'Downtrend',    // เทรนลง
+    'Bottom Zone',  // โซนล่าง
+    'Top Zone',     // โซนบน
+    'Sideways'      // side way
+  ];
 
   const [formData, setFormData] = useState({
-    open_date: '', 
-    close_date: '', 
-    open_time: '',
-    close_time: '',
-    symbol: 'XAUUSD',
-    direction: 'Buy',
-    position_size: '',
-    entry_price: '',
-    exit_price: '',
-    sl: '',
-    tp: '',
+    symbol: 'XAUUSD',          
+    direction: 'Buy',          
+    open_date: '',            
+    open_time: '',          
+    close_date: '',          
+    close_time: '',          
+    time_frame: '',           
+    position_size: '',        
+    entry_price: '',           
+    exit_price: '',              
+    sl: '',                      
+    tp: '',                    
+    strategy: 'Reversal',       
+    chart_pattern: 'Unclear',   
+
     pnl: '',
     pnl_pct: '',
-    strategy: 'Trend Following',
     emotion: '',
     main_mistake: 'No Mistake',
     followed_plan: 'Yes',
     notes: '',
   });
 
+  const getStrategyLabel = (strat: string) => {
+    const map: {[key: string]: string} = {
+      'Trend Following': t('opt_strat_trend'),
+      'Grid': t('opt_strat_grid'),
+      'Scalping': t('opt_strat_scalp'),
+      'Breakout': t('opt_strat_break'),
+      'Range Trading': t('opt_strat_range'),
+      'Reversal': t('opt_strat_reversal'),
+      'High Conviction': t('opt_strat_conviction'),
+      'Smart Money': t('opt_strat_smart'),
+    };
+    return map[strat] || strat;
+};
+
+const getPatternLabel = (pat: string) => {
+    const map: {[key: string]: string} = {
+        'Unclear': t('opt_pat_unclear'),
+        'Uptrend': t('opt_pat_uptrend'),
+        'Downtrend': t('opt_pat_downtrend'),
+        'Bottom Zone': t('opt_pat_bottom'),
+        'Top Zone': t('opt_pat_top'),
+        'Sideways': t('opt_pat_sideways'),
+    };
+    return map[pat] || pat;
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // HANDLERS
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) {
       alert('กรุณาเข้าสู่ระบบก่อนบันทึกข้อมูล / Please login first');
       return;
     }
-
     setIsSubmitting(true);
     setMessage('');
 
@@ -48,41 +106,41 @@ export default function Home() {
       const response = await fetch('/api/add-trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          username: user.username 
-        }),
+        body: JSON.stringify({ ...formData, username: user.username }),
       });
 
       const result = await response.json();
-
+      
       if (result.success) {
-        setMessage(t('msg_success')); 
-        setFormData({
-          open_date: '', close_date: '', open_time: '', close_time: '',
-          symbol: 'XAUUSD', direction: 'Buy', position_size: '',
-          entry_price: '', exit_price: '', sl: '', tp: '',
-          pnl: '', pnl_pct: '', strategy: 'Trend Following',
-          emotion: '', main_mistake: 'No Mistake',
-          followed_plan: 'Yes', notes: '',
-        });
+        const successMsg = t('msg_success').replace('✅ ', '').replace('✅', '');
+        setMessage('✅ ' + successMsg);
+        
+        // Reset Form
+        setFormData(prev => ({
+          ...prev,
+          open_date: '', 
+          open_time: '',
+          close_date: '', 
+          close_time: '', 
+          entry_price: '', 
+          exit_price: '',
+          sl: '',
+          tp: '',
+          notes: ''
+        }));
+        router.push('/dashboard');
+
       } else {
-        setMessage(t('msg_error') + result.error);
+        const errorMsg = result.error || t('msg_fail').replace('❌ ', '').replace('❌', '');
+        setMessage('❌ ' + errorMsg);
       }
+
     } catch (error) {
-      setMessage(t('msg_fail'));
+      console.error(error);
+      setMessage('❌ ' + t('msg_fail').replace('❌ ', '').replace('❌', ''));
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
   };
 
   return (
@@ -111,7 +169,7 @@ export default function Home() {
               {t('section_details')}
             </h2>
 
-            {/* แถวที่ 1 */}
+            {/* Row 1: Symbol, Direction */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <div>
                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
@@ -127,38 +185,6 @@ export default function Home() {
               </div>
               <div>
                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  {t('label_open_date')} <span className="text-slate-500">{t('opt_optional')}</span>
-                </label>
-                <input type="date" name="open_date" value={formData.open_date} onChange={handleChange} className="input-field" />
-              </div>
-            </div>
-
-            {/* แถวที่ 2 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  {t('label_open_time')} <span className="text-slate-500">{t('opt_optional')}</span>
-                </label>
-                <input type="time" name="open_time" value={formData.open_time} onChange={handleChange} className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  {t('label_close_date')} <span className="text-slate-500 text-xs">{t('opt_optional')}</span>
-                </label>
-                <input type="date" name="close_date" value={formData.close_date} onChange={handleChange} className="input-field" />
-              </div>
-            </div>
-
-            {/* แถวที่ 3 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                  {t('label_close_time')} <span className="text-slate-500">{t('opt_optional')}</span>
-                </label>
-                <input type="time" name="close_time" value={formData.close_time} onChange={handleChange} className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                   {t('label_direction')} <span className="text-slate-500">{t('opt_optional')}</span>
                 </label>
                 <select name="direction" value={formData.direction} onChange={handleChange} className="input-field">
@@ -168,65 +194,122 @@ export default function Home() {
               </div>
             </div>
 
-            {/* แถวที่ 4: Position, Entry */}
+            {/* Row 2: Open Date, Open Time */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <div>
-                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
-                    {t('label_position')} <span className="text-slate-500">{t('opt_optional')}</span>
-                    </label>
-                    <input 
-                      type="number" 
-                      step="0.01" 
-                      name="position_size" 
-                      value={formData.position_size} 
-                      onChange={handleChange} 
-                      placeholder={t('ph_position')} 
-                      className="input-field" 
-                    />
-                </div>
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                  {t('label_open_date')} <span className="text-slate-500">{t('opt_optional')}</span>
+                </label>
+                <input type="date" name="open_date" value={formData.open_date} onChange={handleChange} className="input-field" />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                  {t('label_open_time')} <span className="text-slate-500">{t('opt_optional')}</span>
+                </label>
+                <input type="time" name="open_time" value={formData.open_time} onChange={handleChange} className="input-field" />
+              </div>
+            </div>
+
+            {/* Row 3: Close Date, Close Time */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                  {t('label_close_date')} <span className="text-slate-500 text-xs">{t('opt_optional')}</span>
+                </label>
+                <input type="date" name="close_date" value={formData.close_date} onChange={handleChange} className="input-field" />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                  {t('label_close_time')} <span className="text-slate-500">{t('opt_optional')}</span>
+                </label>
+                <input type="time" name="close_time" value={formData.close_time} onChange={handleChange} className="input-field" />
+              </div>
+            </div>
+
+            {/* Row 4: Time Frame, Position Size */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div>
+                 <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                  {t('label_time_frame') || 'Time Frame'} <span className="text-slate-500">{t('opt_optional')}</span>
+                </label>
+                <select name="time_frame" value={formData.time_frame} onChange={handleChange} className="input-field">
+                  <option value="">{t('opt_unspecified') || 'Unspecified'}</option>
+                  {TIME_FRAMES.map(tf => <option key={tf} value={tf}>{tf}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                  {t('label_position')} <span className="text-slate-500">{t('opt_optional')}</span>
+                </label>
+                <input 
+                  type="number" 
+                  step="any" 
+                  name="position_size" 
+                  value={formData.position_size} 
+                  onChange={handleChange} 
+                  placeholder={t('ph_position')} 
+                  className="input-field" 
+                />
+              </div>
+            </div>
+
+             {/* Row 5: Entry, Exit */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div>
                     <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                     {t('label_entry')} <span className="text-slate-500">{t('opt_optional')}</span>
                     </label>
-                    <input type="number" step="0.01" name="entry_price" value={formData.entry_price} onChange={handleChange} className="input-field" />
+                    <input type="number" step="any" name="entry_price" value={formData.entry_price} onChange={handleChange} className="input-field" />
                 </div>
-            </div>
-
-             {/* แถวที่ 5: Exit, SL */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div>
                     <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                     {t('label_exit')} <span className="text-slate-500">{t('opt_optional')}</span>
                     </label>
-                    <input type="number" step="0.01" name="exit_price" value={formData.exit_price} onChange={handleChange} className="input-field" />
+                    <input type="number" step="any" name="exit_price" value={formData.exit_price} onChange={handleChange} className="input-field" />
                 </div>
+             </div>
+
+             {/* Row 6: SL, TP */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div>
                     <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                     {t('label_sl')} <span className="text-slate-500">{t('opt_optional')}</span>
                     </label>
-                    <input type="number" step="0.01" name="sl" value={formData.sl} onChange={handleChange} className="input-field" />
+                    <input type="number" step="any" name="sl" value={formData.sl} onChange={handleChange} className="input-field" />
                 </div>
-             </div>
-
-             {/* แถวที่ 6: TP, Strategy */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div>
                     <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                     {t('label_tp')} <span className="text-slate-500">{t('opt_optional')}</span>
                     </label>
-                    <input type="number" step="0.01" name="tp" value={formData.tp} onChange={handleChange} className="input-field" />
+                    <input type="number" step="any" name="tp" value={formData.tp} onChange={handleChange} className="input-field" />
                 </div>
+             </div>
+
+             {/* Row 7: Strategy, Chart Pattern */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div>
                     <label className="block text-slate-300 mb-2 text-sm sm:text-base">
                     {t('label_strategy')} <span className="text-slate-500">{t('opt_optional')}</span>
                     </label>
                     <select name="strategy" value={formData.strategy} onChange={handleChange} className="input-field">
-                      <option value="Trend Following">{t('opt_strat_trend')}</option>
-                      <option value="Grid">{t('opt_strat_grid')}</option>
-                      <option value="Scalping">{t('opt_strat_scalp')}</option>
-                      <option value="Breakout">{t('opt_strat_break')}</option>
-                      <option value="Range Trading">{t('opt_strat_range')}</option>
+                        {STRATEGIES.map(s => (
+                            <option key={s} value={s}>
+                                {getStrategyLabel(s)} 
+                            </option>
+                        ))}
                     </select>
+                </div>
+                <div>
+                    <label className="block text-slate-300 mb-2 text-sm sm:text-base">
+                    {t('label_chart_pattern') || 'Chart Pattern'} <span className="text-slate-500">{t('opt_optional')}</span>
+                    </label>
+                    <select name="chart_pattern" value={formData.chart_pattern} onChange={handleChange} className="input-field">
+                      {CHART_PATTERNS.map(p => (
+                          <option key={p} value={p}>
+                              {getPatternLabel(p)}
+                          </option>
+                      ))}
+                  </select>
                 </div>
             </div>
 

@@ -1,4 +1,3 @@
-// ไฟล์: app/api/get-trades/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getGoogleSheet, calculatePnlPct, calculatePnl, calculateHoldingTime } from '@/lib/googleSheets';
 
@@ -7,9 +6,9 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const currentUser = searchParams.get('user');
     
-    // รับค่า page และ limit จากหน้าเว็บ (ถ้าไม่ส่งมา ให้ใช้ค่าเริ่มต้น)
+    // รับค่า page และ limit จากหน้าเว็บ
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20'); // โหลดทีละ 20 รายการ
+    const limit = parseInt(searchParams.get('limit') || '20');
 
     if (!currentUser) {
       return NextResponse.json({ success: false, error: 'Unauthorized: User not specified' }, { status: 401 });
@@ -21,35 +20,43 @@ export async function GET(request: NextRequest) {
     // กรองและกลับด้านข้อมูล (เอาล่าสุดขึ้นก่อน)
     const allUserRows = rows.filter((row) => row.get('username') === currentUser).reverse();
 
-    // --- ส่วนการตัดแบ่งข้อมูล (Pagination Logic) ---
+    // --- Pagination Logic ---
     const totalTrades = allUserRows.length;
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const paginatedRows = allUserRows.slice(startIndex, endIndex); // ตัดเอาเฉพาะช่วงที่ต้องการ
+    const paginatedRows = allUserRows.slice(startIndex, endIndex);
 
     const trades = paginatedRows.map((row) => {
-      // ... (โค้ดส่วน map ข้อมูลเหมือนเดิมทุกอย่าง) ...
+      // ดึงค่าทิศทางมาก่อน เพื่อใช้คำนวณ
+      const direction = row.get('direction');
       const entryPrice = parseFloat(row.get('entry_price'));
       const exitPrice = parseFloat(row.get('exit_price'));
       const positionSize = parseFloat(row.get('position_size'));
-      const direction = row.get('direction');
-      
+
+      // คำนวณค่าต่างๆ 
       let pnlPct = row.get('pnl_pct');
       let pnlAmount = row.get('pnl');
-      let holdingTime = row.get('holding_time'); 
 
-      if (!isNaN(entryPrice) && !isNaN(exitPrice) && direction) {
-        if (!pnlPct || pnlPct === '') pnlPct = calculatePnlPct(entryPrice, exitPrice, direction);
-        if ((!pnlAmount || pnlAmount === '') && !isNaN(positionSize)) pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, direction);
+      if ((!pnlPct || !pnlAmount) && !isNaN(entryPrice) && !isNaN(exitPrice)) {
+          pnlPct = calculatePnlPct(entryPrice, exitPrice, direction);
+          pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, direction);
       }
-
-      if ((!holdingTime || holdingTime === '') && row.get('open_date') && row.get('open_time') && row.get('close_time')) {
+      
+      let holdingTime = row.get('holding_time');
+      if (!holdingTime || holdingTime === '') {
           const openDate = row.get('open_date');
           const closeDate = row.get('close_date') || openDate;
           const openTime = row.get('open_time');
           const closeTime = row.get('close_time');
-          holdingTime = calculateHoldingTime(`${openDate}T${openTime}`, `${closeDate}T${closeTime}`);
+          // ต้องมีครบถึงจะคำนวณได้
+          if (openDate && openTime && closeTime) {
+             holdingTime = calculateHoldingTime(`${openDate}T${openTime}`, `${closeDate}T${closeTime}`);
+          }
       }
+
+      // ดึงค่าจาก Sheet (รองรับทั้งชื่อเก่าและชื่อใหม่ เผื่อหัวตารางไม่ตรงกัน)
+      const timeFrame = row.get('timeFrame') || row.get('time_frame') || ''; 
+      const chartPattern = row.get('chartPattern') || row.get('chart_pattern') || '';
 
       return {
         id: row.get('id'),
@@ -64,11 +71,16 @@ export async function GET(request: NextRequest) {
         sl: row.get('sl'),
         tp: row.get('tp'),
         exit_price: row.get('exit_price'),
+        
+        // ค่าที่คำนวณหรือดึงมา
         pnl: pnlAmount,
         pnl_pct: pnlPct, 
-        strategy: row.get('strategy'),
         risk_reward_ratio: row.get('risk_reward_ratio'),
         holding_time: holdingTime, 
+        
+        time_frame: timeFrame,
+        chart_pattern: chartPattern,
+        strategy: row.get('strategy'), 
         emotion: row.get('emotion'),
         main_mistake: row.get('main_mistake'),
         followed_plan: row.get('followed_plan'),
@@ -76,16 +88,17 @@ export async function GET(request: NextRequest) {
       };
     });
     
-    // ส่งข้อมูลกลับ พร้อมบอกว่ามีหน้าถัดไปไหม
     return NextResponse.json({ 
-        success: true, 
-        trades, 
-        total: totalTrades,
-        hasMore: endIndex < totalTrades // ถ้ายังมีข้อมูลเหลือ ให้เป็น true
+      success: true, 
+      trades,
+      total: totalTrades,
+      page,
+      totalPages: Math.ceil(totalTrades / limit),
+      hasMore: endIndex < totalTrades
     });
 
   } catch (error) {
     console.error('Error fetching trades:', error);
-    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to fetch trades' }, { status: 500 });
   }
-} 
+}

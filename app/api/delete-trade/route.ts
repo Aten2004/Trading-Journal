@@ -15,7 +15,7 @@ export async function DELETE(request: NextRequest) {
 
     console.log('Deleting trade:', id);
 
-    const sheet = await getGoogleSheet();
+    const sheet = await getGoogleSheet('Trades');
     const rows = await sheet.getRows();
 
     // หาแถวที่ต้องการลบ
