@@ -639,7 +639,6 @@ export default function Dashboard() {
                                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}
                         `}
                     >
-                        <span>{tab.icon}</span>
                         {tab.label}
                     </button>
                 ))}
