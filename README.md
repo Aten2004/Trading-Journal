@@ -1,37 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📈 Trading Journal Web Application
 
-## Getting Started
+เว็บแอปพลิเคชันสำหรับบันทึกและวิเคราะห์การเทรด (Trading Journal) พัฒนาด้วย Next.js โดยเน้นความเรียบง่ายและใช้งานฟรีด้วยการใช้ Google Sheets เป็นฐานข้อมูล (Database)
 
-First, run the development server:
+## ✨ ฟีเจอร์หลัก (Features)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+* **📝 บันทึกการเทรด (Trade Recording):**
+    * รองรับการกรอกข้อมูลอย่าง สินทรัพย์ (Symbol), ราคาเข้า/ออก (Entry/Exit), SL/TP, ขนาดสัญญา (Position Size)
+    * คำนวณกำไร/ขาดทุน (PnL), % การเติบโต, Risk:Reward (R:R), และระยะเวลาถือออเดอร์ให้อัตโนมัติ
+    * บันทึกด้านจิตวิทยา (Emotion) และข้อผิดพลาด (Mistake) เพื่อนำมาวิเคราะห์ทีหลัง
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* **📊 แดชบอร์ดวิเคราะห์ผลงาน (Dashboard Analytics):**
+    * สรุปสถิติสำคัญ: Win Rate, Profit Factor, Max Drawdown, Average R:R
+    * กราฟเส้นแสดงผลประกอบการและช่วงเวลาทำกำไร (Time Analysis Chart)
+    * ตารางสรุปผลงานแยกตามกลยุทธ์ (Strategy Breakdown) เพื่อหาท่าไม้ตายที่ดีที่สุด
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+* **🧠 Trading Insights (ระบบวิเคราะห์พฤติกรรม):**
+    * วิเคราะห์จุดแข็ง/จุดอ่อน และแจ้งเตือนพฤติกรรมเสี่ยง (Red Flags) เช่น การเทรดแก้แค้น (Revenge Trading), การไม่ตั้ง SL, หรือการเปลี่ยนกลยุทธ์บ่อยเกินไป
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+* **💾 Database & Export:**
+    * เชื่อมต่อข้อมูลกับ Google Sheets โดยตรง ทำให้ข้อมูลปลอดภัยและเข้าถึงได้ง่าย
+    * รองรับการ Export ข้อมูลประวัติการเทรดออกมาเป็นไฟล์ Excel (.xlsx)
 
-## Learn More
+* **🌐 ระบบอื่นๆ:**
+    * รองรับ 2 ภาษา (ไทย / อังกฤษ)
+    * ระบบสมาชิก (Login/Register) เก็บข้อมูลแยกราย User
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ เทคโนโลยีที่ใช้ (Tech Stack)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+* **Language:** [TypeScript](https://www.typescriptlang.org/)
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+* **Database:** Google Sheets (ผ่าน `google-spreadsheet` API)
+* **Charts:** [Recharts](https://recharts.org/)
+* **Authentication:** Custom Auth (bcryptjs + JWT logic)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ⚙️ การติดตั้งและใช้งาน (Installation)
 
-## Deploy on Vercel
+1.  **Clone โปรเจกต์:**
+    ```bash
+    git clone [https://github.com/your-username/trading-journal.git](https://github.com/your-username/trading-journal.git)
+    cd trading-journal
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2.  **ติดตั้ง Dependencies:**
+    ```bash
+    npm install
+    ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
- 
+3.  **ตั้งค่า Environment Variables:**
+    สร้างไฟล์ `.env.local` ที่ root directory และใส่ค่า Config ของ Google Service Account ดังนี้:
+    ```env
+    GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email
+    GOOGLE_PRIVATE_KEY="your-private-key"
+    GOOGLE_SHEETS_ID=your-google-sheet-id
+    ```
+    *(ต้องเปิดสิทธิ์ Google Sheet ให้ Service Account Email สามารถ Editor ได้)*
+
+4.  **รันโปรเจกต์:**
+    ```bash
+    npm run dev
+    ```
+    เปิด Browser ไปที่ `http://localhost:3000`
+
+---
+
+พัฒนาโดย ภูริต เฟื่องฟู
+
+---
+
+# 📈 Trading Journal Web Application
+
+A web application for recording and analyzing trades (Trading Journal) developed with Next.js, focusing on simplicity and free usage by utilizing Google Sheets as a database.
+
+## ✨ Key Features
+
+* **📝 Trade Recording:**
+    * Supports comprehensive data entry including Symbol, Entry/Exit Price, SL/TP, and Position Size.
+    * Automatically calculates Profit/Loss (PnL), Growth %, Risk:Reward (R:R), and Holding Time.
+    * Records Psychology (Emotion) and Mistakes for later analysis.
+
+* **📊 Dashboard Analytics:**
+    * Summarizes key statistics: Win Rate, Profit Factor, Max Drawdown, and Average R:R.
+    * Line chart showing performance and profitability over time (Time Analysis Chart).
+    * Performance summary table broken down by strategy (Strategy Breakdown) to identify your best-performing strategies.
+
+* **🧠 Trading Insights (Behavioral Analysis):**
+    * Analyzes strengths/weaknesses and alerts on risky behaviors (Red Flags) such as Revenge Trading, missing Stop Loss, or frequent strategy hopping.
+
+* **💾 Database & Export:**
+    * Connects directly to Google Sheets, ensuring data safety and easy accessibility.
+    * Supports exporting trade history as an Excel file (.xlsx).
+
+* **🌐 Other Systems:**
+    * Supports 2 languages (Thai / English).
+    * User Authentication system (Login/Register) to manage data separately for each user.
+
+## 🛠️ Tech Stack
+
+* **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+* **Language:** [TypeScript](https://www.typescriptlang.org/)
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+* **Database:** Google Sheets (via `google-spreadsheet` API)
+* **Charts:** [Recharts](https://recharts.org/)
+* **Authentication:** Custom Auth (bcryptjs + JWT logic)
+
+## ⚙️ Installation and Usage
+
+1.  **Clone the project:**
+    ```bash
+    git clone [https://github.com/your-username/trading-journal.git](https://github.com/your-username/trading-journal.git)
+    cd trading-journal
+    ```
+
+2.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Setup Environment Variables:**
+    Create a `.env.local` file at the root directory and add your Google Service Account Config as follows:
+    ```env
+    GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email
+    GOOGLE_PRIVATE_KEY="your-private-key"
+    GOOGLE_SHEETS_ID=your-google-sheet-id
+    ```
+    *(Note: You must grant Editor access to the Service Account Email on your Google Sheet)*
+
+4.  **Run the project:**
+    ```bash
+    npm run dev
+    ```
+    Open your browser and navigate to `http://localhost:3000`
+
+---
+Developed by Phurit Fuengfu
