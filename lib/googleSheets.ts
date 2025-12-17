@@ -137,8 +137,6 @@ export function calculatePnlPct(
   }
 }
 
-// googleSheets.ts
-
 export function calculatePnl(
   entry: number,
   exit: number,
