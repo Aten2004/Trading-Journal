@@ -47,7 +47,8 @@ export async function PUT(request: NextRequest) {
 
         // คำนวณ PnL
         if (entry && exit && size && dir) {
-            const pnl = calculatePnl(entry, exit, size, dir);
+            const sym = row.get('symbol') || '';
+            const pnl = calculatePnl(entry, exit, size, dir, sym);
             row.set('pnl', pnl);
             row.set('pnl_pct', calculatePnlPct(entry, exit, dir));
         } else {

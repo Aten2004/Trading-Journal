@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
       
       let pnl = parseFloat(row.get('pnl') || '0');
       if (entry && exit && dir && pnl === 0) {
-         const pnlStr = calculatePnl(entry, exit, size, dir);
+         const pnlStr = calculatePnl(entry, exit, size, dir, symbol);
          pnl = parseFloat(pnlStr);
       }
 
