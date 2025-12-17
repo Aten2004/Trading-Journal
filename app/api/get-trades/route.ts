@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
     const paginatedRows = allUserRows.slice(startIndex, endIndex);
 
     const trades = paginatedRows.map((row) => {
-      // ดึงค่าทิศทางมาก่อน เพื่อใช้คำนวณ
       const direction = row.get('direction');
+      const symbol = row.get('symbol') || '';
       const entryPrice = parseFloat(row.get('entry_price'));
       const exitPrice = parseFloat(row.get('exit_price'));
       const positionSize = parseFloat(row.get('position_size'));
