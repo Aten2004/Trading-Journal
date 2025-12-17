@@ -17,6 +17,9 @@ const translations = {
     page_subtitle: 'บันทึกการเทรดของคุณอย่างเป็นระบบ',
     section_details: 'ข้อมูลการเทรด',
     section_psycho: 'จิตวิทยาและวินัย',
+    btn_simple_mode: '🔽 ย่อข้อมูล (Simple)',
+    btn_adv_mode: '▶️ รายละเอียดเพิ่ม (Advanced)',
+    section_details_more: 'ข้อมูลการเทรด (ละเอียด)',
     
     // Form Labels
     label_symbol: 'สินทรัพย์',
@@ -27,7 +30,9 @@ const translations = {
     label_time_frame: 'กรอบเวลา',
     label_direction: 'ทิศทาง',
     box_label_direction: '🧭 วิเคราะห์ทิศทาง',
-    label_position: 'ขนาด (Troy Oz)',
+    label_position: 'ขนาด',
+    unit_troy_oz: 'ทรอยออนซ์ (Oz)',
+    unit_lots: 'ลอต (Lots)',
     label_entry: 'ราคาเข้า',
     label_exit: 'ราคาออก',
     label_sl: 'จุดตัดขาดทุน (SL)',
@@ -75,7 +80,7 @@ const translations = {
     opt_pat_sideways: 'Side way',
     
     // Placeholders & Options
-    ph_position: 'เช่น 100 (1 Lot), 10 (0.1 Lot)',
+    ph_position: 'ใส่ขนาดออเดอร์ เช่น 1.00, 0.5, 0.01',
     ph_emotion: '1 = เฉยๆ | 10 = กลัว/โลภมาก',
     ph_notes: 'เหตุผลเข้า? อารมณ์ตลาด?',
     opt_optional: '(ไม่ระบุได้)',
@@ -171,7 +176,7 @@ const translations = {
     th_open_time: 'เวลาเปิด',
     th_close_time: 'เวลาปิด',
     th_dir: 'ทิศทาง',
-    th_pos: 'ขนาด (Oz)',
+    th_pos: 'ขนาด (Lots)',
     th_entry: 'ราคาเข้า',
     th_exit: 'ราคาออก',
     th_sl: 'SL',
@@ -342,6 +347,9 @@ const translations = {
     page_subtitle: 'Systematically record your trading journey',
     section_details: 'Trade Details',
     section_psycho: 'Psychology & Discipline',
+    btn_simple_mode: '🔽 Simple Mode',
+    btn_adv_mode: '▶️ Advanced Mode',
+    section_details_more: 'Trade Details (Advanced)',
     
     // Form Labels
     label_symbol: 'Symbol',
@@ -352,7 +360,9 @@ const translations = {
     label_time_frame: 'Time Frame',
     label_direction: 'Direction',
     box_label_direction: '🧭 Direction Analysis',
-    label_position: 'Position Size (Troy Oz)',
+    label_position: 'Size',
+    unit_troy_oz: 'Troy Oz (Oz)',
+    unit_lots: 'Lots',
     label_entry: 'Entry Price',
     label_exit: 'Exit Price',
     label_sl: 'Stop Loss',
@@ -401,7 +411,7 @@ const translations = {
     chart_trade_label: 'Trade No.',
     
     // Placeholders & Options
-    ph_position: 'e.g. 100 (1 Lot), 10 (0.1 Lot)',
+    ph_position: 'Enter position size e.g. 1.00, 0.5, 0.01',
     ph_emotion: '1 = Calm | 10 = Fear/Greed',
     ph_notes: 'Why enter/exit? Market conditions?',
     opt_optional: '(optional)',
@@ -497,7 +507,7 @@ const translations = {
     th_open_time: 'Open Time',
     th_close_time: 'Close Time',
     th_dir: 'Direction',
-    th_pos: 'Size (Oz)',
+    th_pos: 'Size (Lots)',
     th_entry: 'Entry',
     th_exit: 'Exit',
     th_sl: 'SL',

@@ -337,7 +337,9 @@ export default function Dashboard() {
 
   const totalWins = trades.filter(t => parseFloat(t.pnl || '0') > 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0);
   const totalLosses = Math.abs(trades.filter(t => parseFloat(t.pnl || '0') < 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0));
-  const profitFactor = totalLosses > 0 ? (totalWins / totalLosses).toFixed(2) : totalWins > 0 ? '∞' : '0';
+  const profitFactor = totalLosses > 0 
+      ? (totalWins / totalLosses).toFixed(2) 
+      : (totalWins > 0 ? 'N/A' : '0.00');
 
   const avgRR = trades.length > 0
     ? (trades.reduce((sum, t) => sum + parseFloat(t.risk_reward_ratio || '0'), 0) / trades.length).toFixed(2)

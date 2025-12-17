@@ -163,6 +163,13 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
     }
   };
 
+  const LOT_TO_TROY = 100; // 1 lot = 100 oz
+
+  const getSizeLot = (raw: string) => {
+    const value = parseFloat(raw || '0');
+    return isNaN(value) ? 0 : value; 
+  };
+
   const handleDelete = async (tradeId: string) => {
     if (!confirm(t('tt_confirm_del'))) return;
     setSaving(true);
@@ -244,6 +251,20 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
             <option>USDJPY</option>
             <option>BTCUSD</option>
           </select>
+        );
+      }
+
+      if (field === 'position_size') {
+        return (
+          <input
+            type="number"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={() => handleSave(trade.id, field)}
+            onKeyDown={(e) => handleKeyDown(e, trade.id, field)}
+            autoFocus
+            className="w-full min-w-[80px] bg-slate-600 text-white rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         );
       }
 
@@ -411,6 +432,21 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
         );
     }
 
+    if (field === 'position_size') {
+      const lot = parseFloat(String(value)); // ค่าที่ดึงมาตอนนี้เป็นหน่วย Lot แล้ว
+      return (
+        <div
+          onClick={() => handleCellClick(trade.id, field, String(value))}
+          className="cursor-pointer hover:bg-slate-700/50 rounded px-2 py-1 min-h-[32px] flex items-center"
+        >
+          {/* แสดงผลหน่วย Lot โดยตรง */}
+          {!isNaN(lot) ? lot.toFixed(2) : <span className="text-slate-500">-</span>}
+        </div>
+      );
+    }
+
+    const displayValue = field === 'notes' ? truncateText(value, 30) : (value || '-');
+
     if (field === 'strategy') {
       return (
         <div onClick={() => handleCellClick(trade.id, field, value)} className="cursor-pointer hover:bg-slate-700/50 rounded px-2 py-1 min-h-[32px] flex items-center whitespace-nowrap">
@@ -426,8 +462,6 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
         </div>
       );
     }
-
-    const displayValue = field === 'notes' ? truncateText(value, 30) : (value || '-');
 
     // แสดงผลช่อง P&L Amount (Auto Calculated) + สี
     if (field === 'pnl' && value) {

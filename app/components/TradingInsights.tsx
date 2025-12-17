@@ -230,7 +230,6 @@ export default function TradingInsights({ trades }: TradingInsightsProps) {
   const bestHourEntry = Object.entries(hourlyStats).reduce((best, cur) => cur[1] > best[1] ? cur : best, ['0', -Infinity]);
   const bestHour = bestHourEntry[1] > 0 ? bestHourEntry[0] : null;
 
-
   return (
     <div className="mb-8">
       {/* Header Expectancy */}
@@ -367,7 +366,7 @@ export default function TradingInsights({ trades }: TradingInsightsProps) {
             )}
 
             {/* Default Safe Message */}
-            {!isRevenge && !hasNoSL && !isTilting && avgLoss <= avgWin && currentLosingStreak < 3 && (
+            {!(isRevenge || currentLosingStreak >= 3 || avgLoss > avgWin || biasDirection || hasNoSL || isStrategyHopping || isTilting || isMondayBad || isOverconfident || isBeAbuse) && (
               <li className="text-center text-slate-500 py-4 italic">
                 {t('insight_safe')}
               </li>

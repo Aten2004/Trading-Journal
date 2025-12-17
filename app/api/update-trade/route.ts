@@ -48,9 +48,12 @@ export async function PUT(request: NextRequest) {
         // คำนวณ PnL
         if (entry && exit && size && dir) {
             const pnl = calculatePnl(entry, exit, size, dir);
-            const pct = calculatePnlPct(entry, exit, dir);
             row.set('pnl', pnl);
-            row.set('pnl_pct', pct);
+            row.set('pnl_pct', calculatePnlPct(entry, exit, dir));
+        } else {
+            // หากข้อมูลไม่ครบ ให้ล้างค่าที่เคยคำนวณไว้ (ป้องกันค่าเก่าค้าง)
+            row.set('pnl', '');
+            row.set('pnl_pct', '');
         }
 
         // คำนวณเวลาที่ถือออเดอร์

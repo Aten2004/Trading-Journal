@@ -35,13 +35,13 @@ const DATA_TRANSLATIONS: Record<string, string> = {
 
 // --- หัวตาราง (Headers) แยก 2 ภาษาชัดเจน ---
 const HEADERS_EN = [
-    'No.', 'Date', 'Symbol', 'Time Frame', 'Direction', 'Size (Oz)', 
+    'No.', 'Date', 'Symbol', 'Time Frame', 'Direction', 'Size (Lots)', 
     'Entry', 'Exit', 'Risk Dist. (SL)', 'Reward Dist. (TP)', 
     'P&L ($)', 'Strategy', 'Chart Pattern', 'Mistake', 'Notes'
 ];
 
 const HEADERS_TH = [
-    'ลำดับ', 'วันที่', 'สินทรัพย์', 'Time Frame', 'ทิศทาง', 'ขนาด (Oz)', 
+    'ลำดับ', 'วันที่', 'สินทรัพย์', 'Time Frame', 'ทิศทาง', 'ขนาด (Lots)', 
     'ราคาเข้า', 'ราคาออก', 'ระยะ SL (จุด)', 'ระยะ TP (จุด)', 
     'กำไร/ขาดทุน ($)', 'กลยุทธ์', 'ลักษณะกราฟ', 'ข้อผิดพลาด', 'บันทึก'
 ];
@@ -158,6 +158,11 @@ export async function GET(request: NextRequest) {
         }
     });
 
+    const statsWidths = [18, 22, 18, 18]; 
+    statsWidths.forEach((w, i) => {
+        worksheet.getColumn(i + 2).width = w; 
+    });
+
     ['B3', 'C3', 'D3', 'E3', 'B4', 'C4', 'D4', 'E4'].forEach(cell => {
         worksheet.getCell(cell).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     });
@@ -208,7 +213,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Set Column Widths
-    [2, 6, 15, 10, 12, 12, 10, 12, 12, 15, 15, 15, 20, 18, 18, 30].forEach((w, i) => worksheet.getColumn(i+1).width = w);
+    [2, 15, 15, 15, 15, 12, 15, 12, 12, 15, 15, 18, 20, 18, 18, 30].forEach((w, i) => worksheet.getColumn(i+1).width = w);
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new NextResponse(buffer, {

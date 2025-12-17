@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
       if ((!pnlPct || !pnlAmount) && !isNaN(entryPrice) && !isNaN(exitPrice)) {
           pnlPct = calculatePnlPct(entryPrice, exitPrice, direction);
-          pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, direction);
+          pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, direction); 
       }
       
       let holdingTime = row.get('holding_time');
