@@ -621,9 +621,9 @@ export default function Dashboard() {
         </div>
         )}
 
-        {/* --- ส่วนที่ 2: เมนูเลือกกราฟ (Tab Navigation) --- */}
+       {/* --- ส่วนที่ 2: เมนูเลือกกราฟ (Tab Navigation) --- */}
         <div className="mb-6 overflow-x-auto pb-2 scrollbar-hide">
-            <div className="flex gap-2 p-1 bg-slate-800/50 rounded-xl border border-slate-700/50 w-max mx-auto sm:mx-0">
+            <div className="flex gap-1 p-1 bg-slate-800/50 rounded-xl border border-slate-700/50 min-w-max">
                 {[
                     { id: 'time_frame', label: t('dash_tf_title') },
                     { id: 'direction', label: t('box_label_direction') || 'Direction' },
@@ -635,7 +635,7 @@ export default function Dashboard() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                            px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap
+                            flex-1 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap
                             ${activeTab === tab.id 
                                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
                                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}

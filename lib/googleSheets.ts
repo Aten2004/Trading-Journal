@@ -142,25 +142,20 @@ export function calculatePnl(
   exit: number,
   positionSize: number,
   direction: string,
-  symbol: string = '' 
+  symbol: string = ''
 ): string {
-  try {
-    if (!entry || !exit || !positionSize) return '0';
-    
-    // กำหนดตัวคูณตามสินทรัพย์
-    const sym = symbol.toUpperCase();
-    let multiplier = 1; 
-    if (sym.includes('XAU') || sym.includes('GOLD')) multiplier = 100;
-    // สินทรัพย์อื่นๆ เช่น Forex อาจเป็น 100,000
+  if (!entry || !exit || !positionSize) return '0.00';
 
-    let pnl = 0;
-    if (direction === 'Buy') {
-      pnl = (exit - entry) * positionSize * multiplier;
-    } else {
-      pnl = (entry - exit) * positionSize * multiplier;
-    }
-    return pnl.toFixed(2);
-  } catch (error) {
-    return '0';
+  const sym = symbol.toUpperCase();
+  // ตรวจสอบว่าเป็นทองคำหรือไม่
+  const multiplier = (sym.includes('XAU') || sym.includes('GOLD')) ? 100 : 1;
+
+  let pnl = 0;
+  if (direction.toLowerCase() === 'buy') {
+    pnl = (exit - entry) * positionSize * multiplier;
+  } else {
+    pnl = (entry - exit) * positionSize * multiplier;
   }
+
+  return pnl.toFixed(2);
 }

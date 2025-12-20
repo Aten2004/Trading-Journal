@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     if (!isNaN(entryPrice) && !isNaN(exitPrice) && data.direction) {
        pnlPct = calculatePnlPct(entryPrice, exitPrice, data.direction);
-       if (!isNaN(positionSize)) pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, data.direction);
+       if (!isNaN(positionSize)) pnlAmount = calculatePnl(entryPrice, exitPrice, positionSize, data.direction, data.symbol || '');
     }
 
     let holdingTime = '';
