@@ -207,6 +207,13 @@ const translations = {
     tt_del_error: '❌ ลบไม่ได้',
     tt_confirm_del: 'แน่ใจนะว่าจะลบรายการนี้?',
 
+    filter_all: '📅 ทั้งหมด',
+    filter_today: '📅 วันนี้',
+    filter_7d: '📅 7 วันล่าสุด',
+    filter_30d: '📅 30 วันล่าสุด',
+    filter_month: '📅 เดือนนี้',
+    filter_custom: '📅 เลือกวันที่...',
+
     // --- Trading Insights (การวิเคราะห์เชิงลึก) ---
     insight_title: 'เจาะลึกพฤติกรรมการเทรด',
     insight_sys_exp: 'ความคาดหวังระบบ (Expectancy)',
@@ -537,6 +544,13 @@ const translations = {
     tt_save_error: '❌ Failed to save',
     tt_del_error: '❌ Failed to delete',
     tt_confirm_del: 'Delete this trade?',
+
+    filter_all: '📅 All Time',
+    filter_today: '📅 Today',
+    filter_7d: '📅 Last 7 Days',
+    filter_30d: '📅 Last 30 Days',
+    filter_month: '📅 This Month',
+    filter_custom: '📅 Custom Date...',
 
     // --- Trading Insights (English) ---
     insight_title: 'Deep Analytics',

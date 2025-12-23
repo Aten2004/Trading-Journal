@@ -64,6 +64,8 @@ export async function GET(request: NextRequest) {
     // รับค่าภาษา (Default = en)
     const lang = searchParams.get('lang') || 'en';
     const isThai = lang === 'th';
+    const filterType = searchParams.get('filter') || 'all';
+    const specificDateParam = searchParams.get('date') || '';
 
     if (!username) {
       return NextResponse.json({ success: false, error: 'Username is required' }, { status: 400 });
@@ -73,10 +75,53 @@ export async function GET(request: NextRequest) {
     const rows = await sheet.getRows();
     const userRows = rows.filter((row) => row.get('username') === username);
 
+    const filteredRows = userRows.filter((row) => {
+        const openDate = row.get('open_date');
+        if (!openDate) return false;
+        
+        const tradeDate = new Date(openDate);
+        tradeDate.setHours(0, 0, 0, 0);
+        
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        if (filterType === 'all') return true;
+
+        if (filterType === 'today') {
+            return tradeDate.getTime() === now.getTime();
+        }
+
+        if (filterType === 'specific_date') {
+            if (!specificDateParam) return true;
+            const targetDate = new Date(specificDateParam);
+            targetDate.setHours(0, 0, 0, 0);
+            return tradeDate.getTime() === targetDate.getTime();
+        }
+
+        if (filterType === '7d') {
+            const diffTime = now.getTime() - tradeDate.getTime();
+            const diffDays = diffTime / (1000 * 3600 * 24);
+            return diffDays >= 0 && diffDays <= 7;
+        }
+
+        if (filterType === '30d') {
+            const diffTime = now.getTime() - tradeDate.getTime();
+            const diffDays = diffTime / (1000 * 3600 * 24);
+            return diffDays >= 0 && diffDays <= 30;
+        }
+
+        if (filterType === 'this_month') {
+            return tradeDate.getMonth() === now.getMonth() && 
+                   tradeDate.getFullYear() === now.getFullYear();
+        }
+
+        return true;
+    });
+
     // ฟังก์ชันแปลข้อมูล (ถ้าเป็นไทยให้แปล ถ้าอังกฤษใช้ค่าเดิม)
     const t = (val: string) => (isThai && DATA_TRANSLATIONS[val]) ? DATA_TRANSLATIONS[val] : val;
 
-    const trades = userRows.map((row, index) => {
+    const trades = filteredRows.map((row, index) => {
       const entry = parseFloat(row.get('entry_price') || '0');
       const exit = parseFloat(row.get('exit_price') || '0');
       const sl = parseFloat(row.get('sl') || '0');

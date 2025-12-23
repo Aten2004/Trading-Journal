@@ -49,6 +49,9 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [activeTab, setActiveTab] = useState('time_frame');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [filterType, setFilterType] = useState('all');
+  const [specificDate, setSpecificDate] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -60,7 +63,9 @@ export default function Dashboard() {
     if (!user) return;
     setExporting(true);
     try {
-        const response = await fetch(`/api/export-excel?username=${user.username}&lang=${language}`);
+        const response = await fetch(
+            `/api/export-excel?username=${user.username}&lang=${language}&filter=${filterType}&date=${specificDate}`
+        );
         
         if (response.ok) {
             const blob = await response.blob();
@@ -82,9 +87,53 @@ export default function Dashboard() {
     }
   };
 
+  const filteredTrades = trades.filter((trade) => {
+    if (!trade.open_date) return false;
+    
+    // แปลงวันที่ trade เป็น Date object (Local Time Midnight)
+    const tradeDate = new Date(trade.open_date);
+    tradeDate.setHours(0, 0, 0, 0);
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    if (filterType === 'all') return true;
+    
+    if (filterType === 'today') {
+        return tradeDate.getTime() === now.getTime();
+    }
+
+    if (filterType === 'specific_date') {
+        if (!specificDate) return true; // ถ้ายังไม่เลือกวัน ให้แสดงทั้งหมดไปก่อน
+        const targetDate = new Date(specificDate);
+        targetDate.setHours(0, 0, 0, 0);
+        return tradeDate.getTime() === targetDate.getTime();
+    }
+
+    if (filterType === '7d') {
+        const diffTime = now.getTime() - tradeDate.getTime();
+        const diffDays = diffTime / (1000 * 3600 * 24);
+        return diffDays >= 0 && diffDays <= 7;
+    }
+
+    if (filterType === '30d') {
+        const diffTime = now.getTime() - tradeDate.getTime();
+        const diffDays = diffTime / (1000 * 3600 * 24);
+        return diffDays >= 0 && diffDays <= 30;
+    }
+
+    if (filterType === 'this_month') {
+        return tradeDate.getMonth() === now.getMonth() && 
+               tradeDate.getFullYear() === now.getFullYear();
+    }
+
+    return true;
+  });
+
   const groupStats = (field: keyof Trade) => {
     const stats: { [key: string]: { trades: number; pnl: number; wins: number } } = {};
-    trades.forEach(t => {
+    
+    filteredTrades.forEach(t => { 
         const key = String(t[field] || 'Unspecified');
         if (!stats[key]) stats[key] = { trades: 0, pnl: 0, wins: 0 };
         stats[key].trades += 1;
@@ -218,7 +267,7 @@ export default function Dashboard() {
   const distanceData = (() => {
     const stats: { [key: string]: { slDist: number; tpDist: number; count: number } } = {};
     
-    trades.forEach(t => {
+    filteredTrades.forEach(t => {
        const strat = t.strategy || 'Unspecified';
        const entry = parseFloat(t.entry_price || '0');
        const sl = parseFloat(t.sl || '0');
@@ -251,7 +300,7 @@ export default function Dashboard() {
 
   // Premium Equity Curve
   const equityData = (() => {
-    const sortedTrades = [...trades].sort((a, b) => {
+    const sortedTrades = [...filteredTrades].sort((a, b) => {
        const tA = new Date(`${a.open_date}T${a.open_time || '00:00'}`).getTime();
        const tB = new Date(`${b.open_date}T${b.open_time || '00:00'}`).getTime();
        return tA - tB;
@@ -283,10 +332,10 @@ export default function Dashboard() {
   const off = gradientOffset();
 
   // --- Statistics Calculations ---
-  const totalTrades = trades.length;
-  const winningTrades = trades.filter((t) => parseFloat(t.pnl || '0') > 0).length;
-  const losingTrades = trades.filter((t) => parseFloat(t.pnl || '0') < 0).length;
-  const breakEvenTrades = trades.filter((t) => parseFloat(t.pnl || '0') === 0).length;
+  const totalTrades = filteredTrades.length;
+  const winningTrades = filteredTrades.filter((t) => parseFloat(t.pnl || '0') > 0).length;
+  const losingTrades = filteredTrades.filter((t) => parseFloat(t.pnl || '0') < 0).length;
+  const breakEvenTrades = filteredTrades.filter((t) => parseFloat(t.pnl || '0') === 0).length;
   const winRate = totalTrades > 0 ? ((winningTrades / totalTrades) * 100).toFixed(1) : '0';
 
   const handleLoadMore = () => {
@@ -299,7 +348,7 @@ export default function Dashboard() {
   };
   
   // Time Analysis for Chart
-  const hourlyPriceData = trades
+  const hourlyPriceData = filteredTrades 
   .filter(t => t.open_time && t.entry_price)
   .reduce((acc: any[], t) => {
     const hour = parseInt(t.open_time.split(':')[0]);
@@ -325,49 +374,50 @@ export default function Dashboard() {
   .sort((a: any, b: any) => a.hourLabel.localeCompare(b.hourLabel));
 
   // Financial Stats
-  const totalPnL = trades.reduce((sum, t) => sum + parseFloat(t.pnl || '0'), 0);
+  const totalPnL = filteredTrades.reduce((sum, t) => sum + parseFloat(t.pnl || '0'), 0);
   const totalPnLFormatted = totalPnL.toFixed(2);
 
   const avgWin = winningTrades > 0 
-    ? (trades.filter(t => parseFloat(t.pnl || '0') > 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0) / winningTrades).toFixed(2)
+    ? (filteredTrades.filter(t => parseFloat(t.pnl || '0') > 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0) / winningTrades).toFixed(2)
     : '0';
   const avgLoss = losingTrades > 0
-    ? (trades.filter(t => parseFloat(t.pnl || '0') < 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0) / losingTrades).toFixed(2)
+    ? (filteredTrades.filter(t => parseFloat(t.pnl || '0') < 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0) / losingTrades).toFixed(2)
     : '0';
 
-  const totalWins = trades.filter(t => parseFloat(t.pnl || '0') > 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0);
-  const totalLosses = Math.abs(trades.filter(t => parseFloat(t.pnl || '0') < 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0));
+  const totalWins = filteredTrades.filter(t => parseFloat(t.pnl || '0') > 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0);
+  const totalLosses = Math.abs(filteredTrades.filter(t => parseFloat(t.pnl || '0') < 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0));
   const profitFactor = totalLosses > 0 
       ? (totalWins / totalLosses).toFixed(2) 
       : (totalWins > 0 ? 'N/A' : '0.00');
 
-  const avgRR = trades.length > 0
-    ? (trades.reduce((sum, t) => sum + parseFloat(t.risk_reward_ratio || '0'), 0) / trades.length).toFixed(2)
+  const avgRR = filteredTrades.length > 0
+    ? (filteredTrades.reduce((sum, t) => sum + parseFloat(t.risk_reward_ratio || '0'), 0) / filteredTrades.length).toFixed(2)
     : '0';
 
-  const maxDrawdown = trades.length > 0
-    ? Math.min(...trades.map(t => parseFloat(t.pnl_pct || '0'))).toFixed(2)
+  const maxDrawdown = filteredTrades.length > 0
+    ? Math.min(...filteredTrades.map(t => parseFloat(t.pnl_pct || '0'))).toFixed(2)
     : '0';
 
   // Plan & Psychology
-  const planFollowedCount = trades.filter(t => 
+  const planFollowedCount = filteredTrades.filter(t => 
     ['true', 'yes'].includes(String(t.followed_plan).toLowerCase())
   ).length;
   const planAdherence = totalTrades > 0 ? ((planFollowedCount / totalTrades) * 100).toFixed(1) : '0';
 
   const mistakeCount: { [key: string]: number } = {};
-  trades.forEach(t => {
+  filteredTrades.forEach(t => {
     if (t.main_mistake && t.main_mistake !== 'No Mistake') {
       mistakeCount[t.main_mistake] = (mistakeCount[t.main_mistake] || 0) + 1;
     }
   });
+
   const topMistake = Object.keys(mistakeCount).length > 0
     ? Object.entries(mistakeCount).sort((a, b) => b[1] - a[1])[0]
     : null;
 
   // Best Strategy Logic
   const getBestStrategy = () => {
-    const strategies = trades.reduce((acc: any, trade) => {
+    const strategies = filteredTrades.reduce((acc: any, trade) => {
       const strategy = trade.strategy || 'Unknown';
       const pnl = parseFloat(trade.pnl) || 0;
       
@@ -409,7 +459,7 @@ export default function Dashboard() {
   const bestStrategy = getBestStrategy();
 
   const strategyStats: { [key: string]: { trades: number; pnl: number; wins: number } } = {};
-  trades.forEach(t => {
+  filteredTrades.forEach(t => { 
     if (t.strategy) {
       if (!strategyStats[t.strategy]) {
         strategyStats[t.strategy] = { trades: 0, pnl: 0, wins: 0 };
@@ -422,7 +472,7 @@ export default function Dashboard() {
     }
   });
 
-  const emotionalTrades = trades.filter(t => t.emotion && parseInt(t.emotion) >= 7);
+  const emotionalTrades = filteredTrades.filter(t => t.emotion && parseInt(t.emotion) >= 7);
   const highEmotionLosses = emotionalTrades.filter(t => parseFloat(t.pnl || '0') < 0).length;
   const emotionImpact = emotionalTrades.length > 0
     ? ((highEmotionLosses / emotionalTrades.length) * 100).toFixed(1)
@@ -452,6 +502,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex gap-2 w-full sm:w-auto">
+
             {/* ปุ่ม Export Excel */}
             <button
                 onClick={handleExportExcel}
@@ -478,8 +529,48 @@ export default function Dashboard() {
 
         {/* Trades Table */}
         <div className="mb-8">
-          <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">{t('dash_table_title')}</h3>
-          <TradesTable trades={trades} onRefresh={handleRefresh} />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <h3 className="text-lg sm:text-xl font-semibold text-white">
+              {t('dash_table_title')}
+            </h3>
+
+            {/* Filter Controls Group */}
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="h-10 pl-3 pr-8 rounded-lg text-sm font-medium
+                        bg-slate-800 text-white border border-slate-600 
+                        focus:ring-2 focus:ring-blue-500 outline-none
+                        cursor-pointer hover:bg-slate-700 transition-colors
+                        w-full sm:w-auto min-w-[140px]"
+              >
+                <option value="all">{t('filter_all')}</option>
+                <option value="today">{t('filter_today')}</option>
+                <option value="7d">{t('filter_7d')}</option>
+                <option value="30d">{t('filter_30d')}</option>
+                <option value="this_month">{t('filter_month')}</option>
+                <option value="specific_date">{t('filter_custom')}</option>
+              </select>
+
+              {/* ช่องเลือกวันที่ */}
+              {filterType === 'specific_date' && (
+                <div className="animate-in fade-in zoom-in duration-200 w-full sm:w-auto">
+                    <input
+                    type="date"
+                    value={specificDate}
+                    onChange={(e) => setSpecificDate(e.target.value)}
+                    className="h-10 px-3 rounded-lg text-sm font-medium
+                            bg-slate-700 text-white border border-slate-600 
+                            focus:ring-2 focus:ring-blue-500 outline-none
+                            w-full sm:w-auto"
+                    />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <TradesTable trades={filteredTrades} onRefresh={handleRefresh} />
 
           {hasMore && (
             <div className="mt-4 flex justify-center">
@@ -1211,7 +1302,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <TradingInsights trades={trades} />
+        <TradingInsights trades={filteredTrades} />
 
       </div>
     </div>

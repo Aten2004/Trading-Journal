@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext'; 
 import { useAuth } from '../context/AuthContext';
 
@@ -68,6 +68,10 @@ export default function TradesTable({ trades, onRefresh }: TradesTableProps) {
     'Breakout',
     'Range Trading'
   ];
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [trades]);
 
   const getStrategyLabel = (strat: string) => {
     const map: { [key: string]: string } = {
