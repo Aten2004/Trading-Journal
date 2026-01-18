@@ -1,4 +1,3 @@
-// app/api/thai-news/route.ts
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -26,15 +25,15 @@ export async function GET() {
       while ((match = itemRegex.exec(xmlText)) !== null) {
         const itemContent = match[1];
         
-        // 1. Title
+        // Title
         const titleMatch = itemContent.match(/<title>(.*?)<\/title>/) || itemContent.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
         let title = titleMatch ? titleMatch[1].replace('<![CDATA[', '').replace(']]>', '') : '';
 
-        // 2. Link
+        // Link
         const linkMatch = itemContent.match(/<link>(.*?)<\/link>/);
         const link = linkMatch ? linkMatch[1].trim() : '#';
 
-        // 3. Date & Time (บังคับเวลาไทย)
+        // Date & Time (บังคับเวลาไทย)
         const dateMatch = itemContent.match(/<pubDate>(.*?)<\/pubDate>/);
         let displayDateTime = '';
         let timestamp = 0;
@@ -55,24 +54,19 @@ export async function GET() {
             displayDateTime = thaiDateFormatter.format(pubDate).replace(',', ' •');
         }
 
-        // 4. Image Extraction (อัปเกรดใหม่: ค้นหาทุกซอกทุกมุม)
         let image = null;
 
-        // 4.1 หาจาก Enclosure
         const enclosureMatch = itemContent.match(/<enclosure[^>]*url="([^"]+)"/);
         if (enclosureMatch) image = enclosureMatch[1];
         
-        // 4.2 หาจาก Media Content
         if (!image) {
             const mediaMatch = itemContent.match(/<media:content[^>]*url="([^"]+)"/);
             if (mediaMatch) image = mediaMatch[1];
         }
         
-        // 4.3 หาจาก <img> ใน Description (ส่วนใหญ่จะเจอตรงนี้)
         if (!image) {
             const descMatch = itemContent.match(/<description>([\s\S]*?)<\/description>/);
             if (descMatch) {
-                // หา src ที่เป็นไฟล์รูปภาพ
                 const imgTagMatch = descMatch[1].match(/src=["']([^"']+\.(jpg|jpeg|png|webp))["']/i);
                 if (imgTagMatch) image = imgTagMatch[1];
             }

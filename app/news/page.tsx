@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, memo, useState } from 'react';
 import Navbar from '../components/Navbar';
 
-// --- 1. Greeting & Market Sessions (เวลาตามตารางที่คุณต้องการ) ---
+// Greeting & Market Sessions 
 const MarketSessions = () => {
     const [currentTime, setCurrentTime] = useState<string>('');
     const [currentDate, setCurrentDate] = useState<string>('');
@@ -11,7 +11,6 @@ const MarketSessions = () => {
     useEffect(() => {
         const updateTime = () => {
             const now = new Date();
-            // บังคับแสดงเวลาไทย
             setCurrentTime(now.toLocaleTimeString('th-TH', { 
                 timeZone: 'Asia/Bangkok',
                 hour: '2-digit', 
@@ -30,7 +29,6 @@ const MarketSessions = () => {
         return () => clearInterval(interval);
     }, []);
 
-    // ตารางเวลาตลาด (GMT+7)
     const sessions = [
         { 
             name: '🇦🇺 Sydney', 
@@ -57,14 +55,14 @@ const MarketSessions = () => {
             name: '🇺🇸 New York', 
             time: '19:00 - 04:00', 
             open: 19, 
-            close: 4, // ข้ามวัน
+            close: 4, 
             desc: 'ผันผวนสูง (ข่าว US)' 
         } 
     ];
 
     const checkStatus = (open: number, close: number) => {
         const nowHour = new Date().getHours(); 
-        if (open > close) { // กรณีข้ามวัน
+        if (open > close) { 
             return nowHour >= open || nowHour < close;
         }
         return nowHour >= open && nowHour < close;
@@ -102,7 +100,7 @@ const MarketSessions = () => {
     );
 };
 
-// --- 2. Technical Analysis (Slider Tabs) ---
+// Technical Analysis (Slider Tabs)
 const CustomTechnicalWidget = () => {
     const [interval, setInterval] = useState('1m');
     const container = useRef<HTMLDivElement>(null);
@@ -170,7 +168,7 @@ const CustomTechnicalWidget = () => {
     );
 };
 
-// --- 3. Cheat Sheet (Clean) ---
+// Cheat Sheet
 const SimpleCheatSheet = () => {
     return (
         <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg h-fit">
@@ -212,7 +210,7 @@ const SimpleCheatSheet = () => {
     );
 };
 
-// --- 4. YouTube Channels (เพิ่มใหม่: ช่องข่าวเศรษฐกิจ) ---
+// YouTube Channels
 const YouTubeRecommendations = () => {
     const channels = [
         { name: 'InterGOLD Gold Trade', id: '@InterGOLDGoldTrade', desc: 'ข่าวทองรายวัน & วิเคราะห์กราฟ', color: 'bg-yellow-700' },
@@ -252,7 +250,7 @@ const YouTubeRecommendations = () => {
     );
 };
 
-// --- 5. News Feed (แก้ลิงก์และรูป) ---
+// News Feed
 const ThaiNewsFeed = () => {
   const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -324,7 +322,7 @@ const ThaiNewsFeed = () => {
   );
 };
 
-// --- Ticker Tape ---
+// Ticker Tape
 const TickerTapeWidget = memo(() => {
     const container = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -368,19 +366,17 @@ export default function NewsPage() {
 
       <div className="max-w-[1600px] mx-auto px-4 py-8">
         
-        {/* 1. Greeting Section */}
+        {/* Greeting Section */}
         <MarketSessions />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* LEFT: Technical, Cheat Sheet & YouTube Channels (4 ส่วน) */}
           <div className="lg:col-span-4 flex flex-col gap-6 order-1">
              <CustomTechnicalWidget />
              <YouTubeRecommendations />
              <ThaiNewsFeed />
           </div>
 
-          {/* RIGHT: News Feed (8 ส่วน) */}
           <div className="lg:col-span-8 order-2">
              <SimpleCheatSheet />
           </div>
