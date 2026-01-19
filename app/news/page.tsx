@@ -106,13 +106,16 @@ const CustomTechnicalWidget = () => {
     const container = useRef<HTMLDivElement>(null);
 
     const timeframes = [
-        { label: '1M', val: '1m' },
-        { label: '5M', val: '5m' },
-        { label: '15M', val: '15m' },
-        { label: '30M', val: '30m' },
-        { label: '1H', val: '1h' },
-        { label: '4H', val: '4h' },
-        { label: 'Day', val: '1D' },
+        { label: '1m', val: '1m' },
+        { label: '5m', val: '5m' },
+        { label: '15m', val: '15m' },
+        { label: '30m', val: '30m' },
+        { label: '1h', val: '1h' },
+        { label: '2h', val: '2h' }, 
+        { label: '4h', val: '4h' },
+        { label: '1D', val: '1D' },
+        { label: '1W', val: '1W' }, 
+        { label: '1M', val: '1M' }, 
     ];
 
     useEffect(() => {
