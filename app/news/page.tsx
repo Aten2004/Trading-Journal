@@ -7,8 +7,11 @@ import Navbar from '../components/Navbar';
 const MarketSessions = () => {
     const [currentTime, setCurrentTime] = useState<string>('');
     const [currentDate, setCurrentDate] = useState<string>('');
+    const [isMounted, setIsMounted] = useState(false); 
 
     useEffect(() => {
+        setIsMounted(true); 
+        
         const updateTime = () => {
             const now = new Date();
             setCurrentTime(now.toLocaleTimeString('th-TH', { 
@@ -61,12 +64,33 @@ const MarketSessions = () => {
     ];
 
     const checkStatus = (open: number, close: number) => {
-        const nowHour = new Date().getHours(); 
+        if (!isMounted) return false; 
+
+        const now = new Date();
+        const thaiHour = parseInt(now.toLocaleTimeString('en-US', { 
+            timeZone: 'Asia/Bangkok', 
+            hour: 'numeric', 
+            hour12: false 
+        }));
+        
         if (open > close) { 
-            return nowHour >= open || nowHour < close;
+            return thaiHour >= open || thaiHour < close;
         }
-        return nowHour >= open && nowHour < close;
+        return thaiHour >= open && thaiHour < close;
     };
+
+    if (!isMounted) {
+        return (
+            <div className="mb-8 p-6 bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-2xl shadow-xl animate-pulse">
+                <div className="h-8 bg-slate-700/50 rounded w-1/3 mb-6"></div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[1,2,3,4].map(i => (
+                        <div key={i} className="h-24 bg-slate-700/30 rounded-xl"></div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="mb-8 p-6 bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-2xl shadow-xl">
