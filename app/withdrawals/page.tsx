@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'; 
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
-import { useLanguage } from '../context/LanguageContext'; // เพิ่ม import
+import { useLanguage } from '../context/LanguageContext'; 
 
 interface Withdrawal {
   id: string;
@@ -35,7 +35,7 @@ const THAI_BANKS = [
 
 export default function WithdrawalsPage() {
   const { user, isLoading } = useAuth();
-  const { t } = useLanguage(); // เรียกใช้ useLanguage
+  const { t } = useLanguage(); 
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -105,7 +105,7 @@ export default function WithdrawalsPage() {
   };
 
   const handleDelete = async (deleteId: string) => {
-    if (!confirm(t('confirm_delete'))) return; // ใช้ t()
+    if (!confirm(t('confirm_delete'))) return; 
     if (!user) return;
     
     try {
@@ -115,13 +115,13 @@ export default function WithdrawalsPage() {
       if (res.ok) {
         fetchWithdrawals();
         if (id === deleteId) resetForm();
-        showNotification(t('msg_delete_success'), 'success'); // ใช้ t()
+        showNotification(t('msg_delete_success'), 'success'); 
       } else {
-        showNotification(t('msg_delete_fail'), 'error'); // ใช้ t()
+        showNotification(t('msg_delete_fail'), 'error');
       }
     } catch (error) {
       console.error(error);
-      showNotification(t('msg_delete_error'), 'error'); // ใช้ t()
+      showNotification(t('msg_delete_error'), 'error'); 
     }
   };
 
@@ -150,9 +150,9 @@ export default function WithdrawalsPage() {
 
       resetForm();
       fetchWithdrawals();
-      showNotification(isEditMode ? t('msg_update_success') : t('msg_save_success'), 'success'); // ใช้ t()
+      showNotification(isEditMode ? t('msg_update_success') : t('msg_save_success'), 'success'); 
     } catch (error) {
-      showNotification(t('msg_save_error'), 'error'); // ใช้ t()
+      showNotification(t('msg_save_error'), 'error'); 
     } finally {
       setIsSubmitting(false);
     }
