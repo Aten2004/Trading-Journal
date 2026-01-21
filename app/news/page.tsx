@@ -158,7 +158,7 @@ const CustomTechnicalWidget = () => {
                 "symbol": "OANDA:XAUUSD",
                 "showIntervalTabs": false,
                 "displayMode": "single",
-                "locale": language,
+                "locale": language === 'th' ? 'th_TH' : 'en',
                 "colorTheme": "dark"
             });
             container.current.appendChild(script);
