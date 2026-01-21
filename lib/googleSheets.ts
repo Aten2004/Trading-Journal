@@ -28,6 +28,20 @@ export async function getGoogleSheet(sheetTitle: string = 'Trades') {
     
     // ลองดึง Sheet ตามชื่อ
     let sheet = doc.sheetsByTitle[sheetTitle];
+
+    // Logic สำหรับสร้าง Tab Withdrawals ---
+    if (!sheet && sheetTitle === 'Withdrawals') {
+        console.log('⚠️ ไม่พบ Tab "Withdrawals" - กำลังสร้างให้ใหม่...');
+        try {
+          sheet = await doc.addSheet({ 
+              title: 'Withdrawals', 
+              headerValues: ['id', 'username', 'date', 'amount', 'bank', 'is_profit', 'notes', 'timestamp'] 
+          });
+          console.log('✅ สร้าง Tab "Withdrawals" เรียบร้อยแล้ว!');
+        } catch (e) {
+          console.error('Failed to create Withdrawals sheet:', e);
+        }
+    }
     
     // ระบบแก้ปัญหาอัตโนมัติ: ถ้าหา Tab "Users" ไม่เจอ -> สร้างให้เลย
     if (!sheet && sheetTitle === 'Users') {

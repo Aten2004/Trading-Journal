@@ -150,6 +150,11 @@ export default function Navbar() {
               <span className="text-xl">📊</span>
               <span>{t('nav_dashboard')}</span>
             </Link>
+
+            <Link href="/withdrawals" className={getLinkClass('/withdrawals')}>
+              <span className="text-xl">💸</span>
+              <span>{t('withdraw_title')}</span>
+            </Link>
           </div>
         </div>
 
