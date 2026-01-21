@@ -7,11 +7,14 @@ type Language = 'th' | 'en';
 const translations = {
   th: {
     // Navbar
+    nav_welcome: 'ยินดีต้อนรับ,',
     nav_title: 'Trading Journal',
     nav_record: 'บันทึกเทรด',
     nav_news: 'ข่าว',
     nav_dashboard: 'แดชบอร์ด',
     lang_btn: '🇺🇸 EN',
+    nav_language: 'ภาษา',
+    nav_logout:'🚪 ออกจากระบบ',
 
     // Home Page
     page_title: 'บันทึกการเทรด',
@@ -376,11 +379,14 @@ const translations = {
   },
   en: {
     // Navbar
+    nav_welcome: 'Welcome,',
     nav_title: 'Trading Journal',
     nav_record: 'Trade Record',
     nav_news: 'News',
     nav_dashboard: 'Dashboard',
     lang_btn: '🇹🇭 ไทย', 
+    nav_language:'Language',
+    nav_logout:'🚪 Logout',
 
     // Home Page
     page_title: 'Trade Record',
