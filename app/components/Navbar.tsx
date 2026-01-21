@@ -47,7 +47,7 @@ export default function Navbar() {
 
                 <Link href="/news" className={getLinkClass('/news')}>
                   <span className="text-base sm:text-lg">📰</span>
-                  <span>ข่าว</span>
+                  <span>{t('nav_news')}</span>
                 </Link>
 
                 <Link href="/dashboard" className={getLinkClass('/dashboard')}>

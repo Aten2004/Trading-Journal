@@ -9,6 +9,7 @@ const translations = {
     // Navbar
     nav_title: 'Trading Journal',
     nav_record: 'บันทึกเทรด',
+    nav_news: 'ข่าว',
     nav_dashboard: 'แดชบอร์ด',
     lang_btn: '🇺🇸 EN',
 
@@ -70,6 +71,37 @@ const translations = {
     chart_equity_sub: '(กำไรสะสม)',
     chart_equity_pnl: 'กำไรสะสม',  
     chart_trade_label: 'ไม้ที่',
+
+    // News Page
+    news_greeting: 'ยินดีต้อนรับครับ',
+    news_date: 'วันที่',
+    session_status_open: 'เปิดทำการ',
+    session_status_closed: 'ปิดทำการ',
+
+    // Session Descriptions
+    desc_sydney: 'สภาพคล่องต่ำ (เก็บยาว)',
+    desc_tokyo: 'นิ่ง/วิเคราะห์พื้นฐาน',
+    desc_london: 'วิ่งแรง (Volume สูง)',
+    desc_newyork: 'ผันผวนสูง (ข่าว US)',
+
+    // Widget Titles
+    tech_title: '⚙️ มุมมองเทคนิค',
+    cheat_title: '⚡ สรุปแนวโน้ม',
+    youtube_title: '📺 รวมช่อง YouTube แนะนำ',
+    news_header: '📰 ข่าวเศรษฐกิจ & ทองคำ',
+    
+    // Cheat Sheet Content
+    cheat_dxy: 'ดอลลาร์ (DXY) แข็งค่า 📈',
+    cheat_dxy_desc: 'กดดันราคาทอง',
+    cheat_war: 'สงคราม / วิกฤต 💣',
+    cheat_war_desc: 'สินทรัพย์ปลอดภัย',
+    cheat_fed: 'Fed ลดดอกเบี้ย 📉',
+    cheat_fed_desc: 'ดอลลาร์อ่อน',
+    action_sell: 'เน้น SELL 📉',
+    action_buy: 'เน้น BUY 🚀',
+
+    news_loading: 'กำลังโหลดข่าว...',
+    news_no_data: 'ไม่พบข้อมูลข่าวสาร',
 
     // Chart Patterns
     opt_pat_unclear: 'ไม่ชัดเจน',
@@ -346,6 +378,7 @@ const translations = {
     // Navbar
     nav_title: 'Trading Journal',
     nav_record: 'Trade Record',
+    nav_news: 'News',
     nav_dashboard: 'Dashboard',
     lang_btn: '🇹🇭 ไทย', 
 
@@ -416,6 +449,37 @@ const translations = {
     chart_equity_sub: '(Cumulative P&L)',
     chart_equity_pnl: 'Cumulative P&L',
     chart_trade_label: 'Trade No.',
+
+    // News Page
+    news_greeting: 'Welcome',
+    news_date: 'Date',
+    session_status_open: 'Open Now',
+    session_status_closed: 'Closed',
+
+    // Session Descriptions
+    desc_sydney: 'Low Liquidity (Swing)',
+    desc_tokyo: 'Stable / Fundamental',
+    desc_london: 'High Volatility (High Vol)',
+    desc_newyork: 'High Volatility (US News)',
+
+    // Widget Titles
+    tech_title: '⚙️ Technical View',
+    cheat_title: '⚡ Cheat Sheet',
+    youtube_title: '📺 Recommended YouTube',
+    news_header: '📰 Economic & Gold News',
+
+    // Cheat Sheet Content
+    cheat_dxy: 'Strong DXY 📈',
+    cheat_dxy_desc: 'Pressures Gold Price',
+    cheat_war: 'War / Crisis 💣',
+    cheat_war_desc: 'Safe Haven Asset',
+    cheat_fed: 'Fed Rate Cut 📉',
+    cheat_fed_desc: 'Weaker Dollar',
+    action_sell: 'Focus SELL 📉',
+    action_buy: 'Focus BUY 🚀',
+
+    news_loading: 'Loading news...',
+    news_no_data: 'No news found',
     
     // Placeholders & Options
     ph_position: 'Enter position size e.g. 1.00, 0.5, 0.01',
