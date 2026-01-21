@@ -15,8 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  manifest: '/manifest.json',
   title: "Trading Journal",
   description: "Record your trading journey",
+  icons: {
+    icon: '/icon.png',       
+    apple: '/icon.png',       
+  },
 };
 
 export default function RootLayout({
