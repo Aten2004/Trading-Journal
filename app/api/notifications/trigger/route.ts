@@ -21,7 +21,6 @@ const WEEKEND_MESSAGES = [
   { title: '🎬 พักสายตาจากกราฟบ้าง', body: 'หาหนังดีๆ ดูสักเรื่อง หรือออกไปสูดอากาศข้างนอกบ้างนะ', url: '/news' },
 ];
 
-// เพิ่ม: ข้อความสำหรับ Calculator
 const CALCULATOR_MESSAGES = [
   { title: '🧮 คำนวณก่อนเทรด!', body: 'อย่าลืมเช็ค RR และความเสี่ยงในหน้าเครื่องคิดเลขนะครับ', url: '/calculator' },
   { title: '🛡️ ปลอดภัยไว้ก่อน', body: 'ลองคำนวณระยะ SL/TP ให้แม่นยำก่อนกดออเดอร์นะ', url: '/calculator' },
@@ -74,8 +73,14 @@ const USER_MESSAGES = {
   ]
 };
 
+// Define Type สำหรับข่าว
+type NewsItem = {
+    title: string;
+    isHot: boolean;
+};
+
 // --- 2. ฟังก์ชันดึงข่าว (Smart News) ---
-async function getSmartNews() {
+async function getSmartNews(): Promise<NewsItem | null> {
   try {
     const sources = [
       'https://th.investing.com/rss/news_11.rss', // ทองคำ
@@ -87,7 +92,8 @@ async function getSmartNews() {
       sources.map(url => fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, next: { revalidate: 60 } }).then(res => res.text()))
     );
 
-    let hotNews = null;
+    // ✅ Fix: ระบุ Type ชัดเจน (บรรทัดที่เคย Error)
+    let hotNews: NewsItem | null = null;
     let maxTimestamp = 0;
     
     // คำสำคัญที่น่าสนใจ (High Impact Keywords)
@@ -109,14 +115,12 @@ async function getSmartNews() {
             const titleMatch = itemContent.match(/<title>(.*?)<\/title>/) || itemContent.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
             let title = titleMatch ? titleMatch[1].replace('<![CDATA[', '').replace(']]>', '') : '';
 
-            // เช็คว่าเป็นข่าว Hot หรือไม่
             const isHot = keywords.some(kw => title.includes(kw));
             
             if (title && isHot) {
                maxTimestamp = timestamp;
                hotNews = { title, isHot: true };
             } else if (title && !hotNews) {
-               // ถ้ายังไม่มีข่าว Hot เอาข่าวล่าสุดทั่วไปไว้ก่อน
                maxTimestamp = timestamp;
                hotNews = { title, isHot: false };
             }
@@ -131,7 +135,6 @@ async function getSmartNews() {
   }
 }
 
-// --- Helper สุ่มข้อความ ---
 const getRandom = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
 
 export async function GET(req: Request) {
@@ -145,14 +148,22 @@ export async function GET(req: Request) {
     const tradeRows = await tradeSheet.getRows();
 
     const notifications = [];
-    const now = new Date();
-    // ปรับเวลาเป็นไทย (UTC+7) แบบง่ายๆ
-    const thaiHour = (now.getUTCHours() + 7) % 24; 
-    const todayStr = now.toISOString().split('T')[0];
-    const isWeekend = now.getDay() === 0 || now.getDay() === 6;
 
-    // 2. ดึงข่าว (โอกาส 40% ที่จะเช็คข่าว หรือถ้าเป็นช่วงหัวค่ำให้เช็คบ่อยหน่อย)
-    let newsItem: any = null;
+    // ✅ FIX: คำนวณเวลาไทย (Bangkok Time) อย่างถูกต้อง
+    const now = new Date();
+    const thaiTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+    
+    const thaiHour = thaiTime.getHours();
+    const year = thaiTime.getFullYear();
+    const month = String(thaiTime.getMonth() + 1).padStart(2, '0');
+    const day = String(thaiTime.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+    
+    const isWeekend = thaiTime.getDay() === 0 || thaiTime.getDay() === 6;
+
+    // 2. ดึงข่าว
+    // ✅ Fix: ระบุ Type ตรงนี้ด้วย
+    let newsItem: NewsItem | null = null;
     const shouldCheckNews = Math.random() < 0.4 || (thaiHour >= 19 && thaiHour <= 21);
     
     if (!isWeekend && shouldCheckNews) {
@@ -176,10 +187,8 @@ export async function GET(req: Request) {
       let body = '';
       let url = '/dashboard';
 
-      // --- LOGIC การเลือกข้อความ ---
-
+      // --- LOGIC ---
       if (isWeekend) {
-        // [วันหยุด] -> สุ่มข้อความวันหยุด
         const msg = getRandom(WEEKEND_MESSAGES);
         title = msg.title;
         body = msg.body;
@@ -188,36 +197,34 @@ export async function GET(req: Request) {
       else {
         // [วันธรรมดา]
 
-        // A. ถ้ามีข่าวสำคัญ (Hot News) ให้แทรกแซงทันที
+        // A. ข่าวสำคัญ
         if (newsItem && newsItem.isHot) {
            title = `🔥 ข่าวด่วน! ถึงคุณ ${username}`;
            body = newsItem.title;
            url = '/news';
         }
-        // B. ถ้าเป็นช่วงเวลาเปิดตลาด (Session Open)
-        else if (thaiHour >= 13 && thaiHour <= 14) { // London Open
+        // B. Session Open
+        else if (thaiHour >= 13 && thaiHour <= 14) { 
            const msg = getRandom(SESSION_MESSAGES.london);
            title = msg.title;
            body = msg.body;
            url = msg.url;
         }
-        else if (thaiHour >= 19 && thaiHour <= 20) { // New York Open
+        else if (thaiHour >= 19 && thaiHour <= 20) {
            const msg = getRandom(SESSION_MESSAGES.newyork);
            title = msg.title;
            body = msg.body;
            url = msg.url;
         }
-        // C. ถ้ายังไม่ได้เทรดวันนี้ (Pre-Trade)
+        // C. Pre-Trade (ยังไม่เทรด)
         else if (!hasTradedToday) {
-           
-           // *** เพิ่ม Logic: สุ่มเตือนให้ไปใช้เครื่องคิดเลข (30% chance) ***
+           // *** 30% Chance เตือนให้ใช้ Calculator ***
            if (Math.random() < 0.3) {
              const msg = getRandom(CALCULATOR_MESSAGES);
              title = msg.title;
              body = msg.body;
              url = msg.url;
            } 
-           // ถ้าไม่เข้าเครื่องคิดเลข ให้ส่งข้อความตามระดับ User
            else if (totalTrades < 5) {
              title = `🔔 มือใหม่ ${username} สู้ๆ!`;
              body = getRandom(USER_MESSAGES.newbie);
@@ -232,9 +239,8 @@ export async function GET(req: Request) {
              url = '/dashboard';
            }
         }
-        // D. ถ้าเทรดไปแล้ว (Post-Trade)
+        // D. Post-Trade (เทรดแล้ว)
         else {
-           // ส่งบ้างไม่ส่งบ้าง (30% chance) เพื่อไม่ให้รำคาญ
            if (Math.random() < 0.3) {
              title = `🌟 เยี่ยมมากคุณ ${username}!`;
              body = getRandom(USER_MESSAGES.post_trade);
@@ -243,7 +249,6 @@ export async function GET(req: Request) {
         }
       }
 
-      // ส่ง Notification
       if (title) {
         notifications.push(
           webpush.sendNotification(subscription as any, JSON.stringify({ title, body, url }))
