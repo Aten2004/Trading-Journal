@@ -12,9 +12,11 @@ const translations = {
     nav_record: 'บันทึกเทรด',
     nav_news: 'ข่าว',
     nav_dashboard: 'แดชบอร์ด',
+    nav_calc: 'คำนวณกำไร/ขาดทุน',
     lang_btn: '🇺🇸 EN',
     nav_language: 'ภาษา',
     nav_logout:'🚪 ออกจากระบบ',
+    nav_notification: 'เปิดแจ้งเตือน',
 
     // Home Page
     page_title: 'บันทึกการเทรด',
@@ -24,6 +26,14 @@ const translations = {
     btn_simple_mode: '🔽 ย่อข้อมูล (Simple)',
     btn_adv_mode: '▶️ รายละเอียดเพิ่ม (Advanced)',
     section_details_more: 'ข้อมูลการเทรด (ละเอียด)',
+
+    // Calculator Page
+    calc_title: 'เครื่องมือคำนวณกำไร/ขาดทุน',
+    calc_subtitle: 'วางแผนก่อนออกออเดอร์ คำนวณจุดคุ้มทุนและกำไร',
+    res_profit: 'กำไรที่จะได้',
+    res_loss: 'ขาดทุนที่จะเสีย',
+    res_points: 'ระยะ (จุด)',
+    res_rr: 'Risk : Reward',
     
     // Form Labels
     label_symbol: 'สินทรัพย์',
@@ -430,9 +440,11 @@ const translations = {
     nav_record: 'Trade Record',
     nav_news: 'News',
     nav_dashboard: 'Dashboard',
+    nav_calc: 'Calculator',
     lang_btn: '🇹🇭 ไทย', 
     nav_language:'Language',
     nav_logout:'🚪 Logout',
+    nav_notification: 'Enable Notifications',
 
     // Home Page
     page_title: 'Trade Record',
@@ -442,6 +454,14 @@ const translations = {
     btn_simple_mode: '🔽 Simple Mode',
     btn_adv_mode: '▶️ Advanced Mode',
     section_details_more: 'Trade Details (Advanced)',
+
+    // Calculator Page
+    calc_title: 'Position Calculator',
+    calc_subtitle: 'Plan your trade outcome before execution',
+    res_profit: 'Potential Profit',
+    res_loss: 'Potential Loss',
+    res_points: 'Distance (Pts)',
+    res_rr: 'Risk : Reward',
     
     // Form Labels
     label_symbol: 'Symbol',
