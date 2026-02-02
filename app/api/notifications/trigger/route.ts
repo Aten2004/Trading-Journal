@@ -139,6 +139,12 @@ const getRandom = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
 
 export async function GET(req: Request) {
   try {
+    // ✅ FIX 1: เพิ่ม Security Check (ต้องมีรหัสผ่านจาก cron-job.org ถึงจะทำงาน)
+    const authHeader = req.headers.get('authorization');
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
     // 1. เตรียมข้อมูล
     const subSheet = await getGoogleSheet('Subscriptions');
     const subRows = await subSheet.getRows();
@@ -149,7 +155,6 @@ export async function GET(req: Request) {
 
     const notifications = [];
 
-    // ✅ FIX: คำนวณเวลาไทย (Bangkok Time) อย่างถูกต้อง
     const now = new Date();
     const thaiTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
     
@@ -162,9 +167,14 @@ export async function GET(req: Request) {
     const isWeekend = thaiTime.getDay() === 0 || thaiTime.getDay() === 6;
 
     // 2. ดึงข่าว
-    // ✅ Fix: ระบุ Type ตรงนี้ด้วย
     let newsItem: NewsItem | null = null;
-    const shouldCheckNews = Math.random() < 0.4 || (thaiHour >= 19 && thaiHour <= 21);
+    
+    // ✅ FIX 2: เพิ่มเงื่อนไขเช็คข่าวตอนเช้า (07:00-09:00)
+    const isMorningNews = thaiHour >= 7 && thaiHour <= 9;
+    const isEveningNews = thaiHour >= 19 && thaiHour <= 21;
+    
+    // เช็คข่าวเมื่อ: สุ่มโดน 40% หรือ เป็นช่วงเวลาข่าวสำคัญ (เช้า/ค่ำ)
+    const shouldCheckNews = Math.random() < 0.4 || isMorningNews || isEveningNews;
     
     if (!isWeekend && shouldCheckNews) {
         newsItem = await getSmartNews();
@@ -178,7 +188,6 @@ export async function GET(req: Request) {
         keys: { auth: subRow.get('keys_auth'), p256dh: subRow.get('keys_p256dh') },
       };
 
-      // กรองประวัติเทรด
       const userTrades = tradeRows.filter(r => r.get('username') === username);
       const hasTradedToday = userTrades.some(r => r.get('open_date') === todayStr);
       const totalTrades = userTrades.length;
@@ -203,22 +212,29 @@ export async function GET(req: Request) {
            body = newsItem.title;
            url = '/news';
         }
-        // B. Session Open
-        else if (thaiHour >= 13 && thaiHour <= 14) { 
+        // ✅ FIX 3: เพิ่ม Logic ตลาดเช้า (07:00 - 10:00) ที่คุณต้องการ
+        else if (thaiHour >= 7 && thaiHour <= 10) { 
+           const msg = getRandom(SESSION_MESSAGES.morning);
+           title = msg.title;
+           body = msg.body;
+           url = msg.url;
+        }
+        // B. Session Open (London)
+        else if (thaiHour >= 13 && thaiHour <= 15) { 
            const msg = getRandom(SESSION_MESSAGES.london);
            title = msg.title;
            body = msg.body;
            url = msg.url;
         }
-        else if (thaiHour >= 19 && thaiHour <= 20) {
+        // New York
+        else if (thaiHour >= 19 && thaiHour <= 21) {
            const msg = getRandom(SESSION_MESSAGES.newyork);
            title = msg.title;
            body = msg.body;
            url = msg.url;
         }
-        // C. Pre-Trade (ยังไม่เทรด)
+        // C. Pre-Trade (ช่วงเวลาอื่น)
         else if (!hasTradedToday) {
-           // *** 30% Chance เตือนให้ใช้ Calculator ***
            if (Math.random() < 0.3) {
              const msg = getRandom(CALCULATOR_MESSAGES);
              title = msg.title;
@@ -239,7 +255,7 @@ export async function GET(req: Request) {
              url = '/dashboard';
            }
         }
-        // D. Post-Trade (เทรดแล้ว)
+        // D. Post-Trade
         else {
            if (Math.random() < 0.3) {
              title = `🌟 เยี่ยมมากคุณ ${username}!`;
