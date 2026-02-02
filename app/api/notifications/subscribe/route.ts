@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getGoogleSheet } from '@/lib/googleSheets';
+import webpush from 'web-push';
+
+webpush.setVapidDetails(
+  `mailto:${process.env.GOOGLE_VAPID_SUBJECT || 'test@test.com'}`,
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  process.env.GOOGLE_VAPID_PRIVATE_KEY!
+);
 
 export async function POST(req: Request) {
   try {
@@ -40,6 +47,20 @@ export async function POST(req: Request) {
             last_updated: timestamp
         });
        console.log(`Registered new endpoint for ${username}`);
+    }
+
+    try {
+        const payload = JSON.stringify({
+            title: `🔔 ยินดีต้อนรับคุณ ${username}!`,
+            body: 'ระบบแจ้งเตือนเชื่อมต่อสำเร็จแล้ว พร้อมรับข่าวสารและสรุปการเทรดครับ',
+            url: '/dashboard'
+        });
+
+        await webpush.sendNotification(subscription, payload);
+        console.log('Test notification sent successfully.');
+        
+    } catch (err) {
+        console.error('Failed to send welcome notification:', err);
     }
 
     return NextResponse.json({ success: true });
