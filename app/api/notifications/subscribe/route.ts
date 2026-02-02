@@ -24,7 +24,11 @@ export async function POST(req: Request) {
       row.get('endpoint')?.trim() === subscription.endpoint?.trim()
     );
 
+    // ✅ สร้างตัวแปรเช็คว่าเป็นสมาชิกใหม่หรือไม่
+    let isNewSubscriber = false;
+
     if (existingRow) {
+       // ถ้ามีอยู่แล้ว แค่อัปเดตข้อมูล (ไม่ต้องส่ง Noti)
        existingRow.assign({
            user_id: userId,        
            username: username, 
@@ -37,6 +41,7 @@ export async function POST(req: Request) {
        console.log(`Updated ownership of endpoint to ${username}`);
 
     } else {
+       // ถ้ายังไม่มี เพิ่มใหม่ และตั้งค่า isNewSubscriber = true
        await sheet.addRow({
             user_id: userId,
             username: username,
@@ -46,21 +51,25 @@ export async function POST(req: Request) {
             is_active: 'TRUE',
             last_updated: timestamp
         });
+       isNewSubscriber = true; // <--- ระบุว่าเป็นคนใหม่
        console.log(`Registered new endpoint for ${username}`);
     }
 
-    try {
-        const payload = JSON.stringify({
-            title: `🔔 ยินดีต้อนรับคุณ ${username}!`,
-            body: 'ระบบแจ้งเตือนเชื่อมต่อสำเร็จแล้ว พร้อมรับข่าวสารและสรุปการเทรดครับ',
-            url: '/dashboard'
-        });
+    // ✅ ส่งแจ้งเตือนเฉพาะเมื่อเป็นคนใหม่เท่านั้น (isNewSubscriber === true)
+    if (isNewSubscriber) {
+        try {
+            const payload = JSON.stringify({
+                title: `🔔 ยินดีต้อนรับคุณ ${username}!`,
+                body: 'ระบบแจ้งเตือนเชื่อมต่อสำเร็จแล้ว พร้อมรับข่าวสารและสรุปการเทรดครับ',
+                url: '/dashboard'
+            });
 
-        await webpush.sendNotification(subscription, payload);
-        console.log('Test notification sent successfully.');
-        
-    } catch (err) {
-        console.error('Failed to send welcome notification:', err);
+            await webpush.sendNotification(subscription, payload);
+            console.log('Welcome notification sent.');
+            
+        } catch (err) {
+            console.error('Failed to send welcome notification:', err);
+        }
     }
 
     return NextResponse.json({ success: true });

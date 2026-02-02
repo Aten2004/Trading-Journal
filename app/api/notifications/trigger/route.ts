@@ -29,22 +29,22 @@ const CALCULATOR_MESSAGES = [
 ];
 
 const SESSION_MESSAGES = {
-  sydney: [ // 05:00 - 06:00 (ช่วงเปิดตลาดซิดนีย์)
+  sydney: [ 
     { title: '🇦🇺 Sydney Session Open', body: 'ตลาดซิดนีย์เปิดแล้ว! ช่วงนี้สภาพคล่องอาจจะต่ำ เน้นถือยาวนะครับ', url: '/dashboard' },
     { title: '🐨 อรุณสวัสดิ์เทรดเดอร์', body: 'เริ่มวันใหม่กับตลาดออสเตรเลีย เช็คกราฟ Timeframe ใหญ่ก่อนนะ', url: '/' },
     { title: '🌊 คลื่นลูกแรกมาแล้ว', body: 'Sydney Open: ตลาดยังวิ่งเบาๆ อย่าเพิ่งรีบออกไม้หนัก', url: '/news' },
   ],
-  tokyo: [ // 06:00 - 14:00 (ช่วงตลาดโตเกียว)
+  tokyo: [ 
     { title: '🇯🇵 Tokyo Session Open', body: 'ตลาดโตเกียวมาแล้ว! กราฟมักจะนิ่ง เน้นวิเคราะห์พื้นฐานนะครับ', url: '/' },
     { title: '🍣 ได้เวลาตลาดเอเชีย', body: 'ช่วงนี้ราคาอาจไซด์เวย์ รอจังหวะ Breakout สวยๆ นะ', url: '/news' },
     { title: '💹 จับตาดูคู่เงิน JPY', body: 'Tokyo Session: ระวังความผันผวนของค่าเงินเยนด้วยครับ', url: '/dashboard' },
   ],
-  london: [ // 14:00 - 19:00 (ช่วงตลาดลอนดอน ก่อน NY มา)
+  london: [ 
     { title: '🇬🇧 London Session Open', body: 'ตลาดลอนดอนเปิดแล้ว! วอลลุ่มเริ่มเข้า กราฟเริ่มวิ่งแรง', url: '/dashboard' },
     { title: '☕ Afternoon Tea Trade', body: 'ช่วงบ่ายความผันผวนสูง เตรียมแผนรับมือให้ดีนะครับ', url: '/' },
     { title: '⚡ GBP/EUR วิ่งแรง', body: 'London Session: โฟกัสคู่เงินยุโรป หาจังหวะเข้าทำกำไรได้เลย', url: '/news' },
   ],
-  newyork: [ // 19:00 - 04:00 (ช่วงตลาดนิวยอร์ก)
+  newyork: [ 
     { title: '🇺🇸 New York Session Open', body: 'ตลาดอเมริกาเปิดแล้ว! ระวังข่าว US และความผันผวนระดับสูง', url: '/news' },
     { title: '🗽 High Volatility Alert', body: 'NY Session: กราฟกระชากแรง ตั้ง SL ให้รอบคอบนะครับ', url: '/dashboard' },
     { title: '🍔 คืนนี้ระวังข่าวแดง', body: 'USD กำลังมา! เช็คตารางข่าวเศรษฐกิจก่อนกดออเดอร์เสมอ', url: '/news' },
@@ -52,25 +52,25 @@ const SESSION_MESSAGES = {
 };
 
 const USER_MESSAGES = {
-  newbie: [ // < 5 trades
+  newbie: [ 
     'ตลาดเปิดแล้ว อย่าลืมหาจังหวะสวยๆ แล้วจดบันทึกนะ',
     'อย่าเพิ่งรีบเข้าออเดอร์ รอให้มั่นใจก่อนค่อยยิง',
     'การรักษาเงินต้น สำคัญกว่ากำไรนะ จำไว้เสมอ',
     'วันนี้มีแผนเทรดหรือยัง? ถ้าไม่มี ห้ามกดนะ!'
   ],
-  intermediate: [ // < 50 trades
+  intermediate: [ 
     'ถ้ามีกำไรอย่าลืมกันทุน ถ้าขาดทุนอย่าลืมดูแผนนะ',
     'อย่า Overtrade นะครับ วินัยคือกุญแจสู่ความสำเร็จ',
     'วันนี้โฟกัสที่ Risk:Reward นะ คุ้มเสี่ยงไหม?',
     'อารมณ์เป็นไงบ้าง? ถ้าหัวร้อนให้ปิดจอนะ'
   ],
-  pro: [ // > 50 trades
+  pro: [ 
     'วันนี้ "ทับมือ" หรือเปล่าครับ? รักษาวินัยเยี่ยมมาก!',
     'Sniper Mode: รอจังหวะที่ใช่จริงๆ เท่านั้น',
     'ปล่อยให้กำไรไหล (Let Profit Run) ตัดขาดทุนให้ไว',
     'เป็นไงบ้าง Pro? วันนี้ตลาดเข้าทางไหม?'
   ],
-  post_trade: [ // เทรดไปแล้ว
+  post_trade: [ 
     'บันทึกครบถ้วน วินัยดีแบบนี้ พอร์ตโตแน่นอน',
     'เทรดเสร็จแล้ว พักผ่อนบ้างนะ อย่าเฝ้ากราฟทั้งวัน',
     'เยี่ยมมาก! การจดบันทึกคือจุดเริ่มต้นของการพัฒนา',
@@ -100,7 +100,7 @@ async function getSmartNews(): Promise<NewsItem | null> {
     let hotNews: NewsItem | null = null;
     let maxTimestamp = 0;
     
-    const keywords = ['เฟด', 'Fed', 'ดอกเบี้ย', 'เงินเฟ้อ', 'CPI', 'จ้างงาน', 'Non-Farm', 'สงคราม', 'ทองคำพุ่ง', 'ทองคำร่วง', 'GDP'];
+    const keywords = ['เฟด', 'Fed', 'ดอกเบี้ย', 'เงินเฟ้อ', 'CPI', 'จ้างงาน', 'Non-Farm', 'สงคราม', 'ทองคำพุ่ง', 'ทองคำร่วง', 'GDP', 'สงคราม'];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
 
     responses.forEach(xmlText => {
@@ -111,7 +111,9 @@ async function getSmartNews(): Promise<NewsItem | null> {
         
         if (dateMatch) {
           const timestamp = new Date(dateMatch[1]).getTime();
-          const isFresh = (Date.now() - timestamp) < (2 * 60 * 60 * 1000); 
+          // ✅ FIX: ลดเวลาข่าวเหลือแค่ 20 นาที (จากเดิม 2 ชม.) 
+          // เพื่อให้แจ้งเฉพาะข่าวที่มาใหม่จริงๆ ในรอบ Cron นั้นๆ ไม่แจ้งซ้ำข่าวเดิม
+          const isFresh = (Date.now() - timestamp) < (20 * 60 * 1000); 
 
           if (isFresh && timestamp > maxTimestamp) {
             const titleMatch = itemContent.match(/<title>(.*?)<\/title>/) || itemContent.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
@@ -121,9 +123,6 @@ async function getSmartNews(): Promise<NewsItem | null> {
             if (title && isHot) {
                maxTimestamp = timestamp;
                hotNews = { title, isHot: true };
-            } else if (title && !hotNews) {
-               maxTimestamp = timestamp;
-               hotNews = { title, isHot: false };
             }
           }
         }
@@ -147,17 +146,15 @@ export async function GET(req: Request) {
     }
 
     // -------------------------------------------------------------
-    // ✅ FIX TIMEZONE: คำนวณเวลาไทยแบบ Manual (UTC+7) ชัวร์สุด
+    // ✅ FIX TIMEZONE & LOGIC: เช็คตามนาที เพื่อไม่ให้แจ้งซ้ำ
     // -------------------------------------------------------------
     const now = new Date();
-    // UTC Timestamp + 7 Hours
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const thaiTime = new Date(utc + (3600000 * 7));
 
     const thaiHour = thaiTime.getHours(); 
-    // วันที่ไทยสำหรับเช็คว่าเทรดไปหรือยัง (YYYY-MM-DD)
+    const thaiMinute = thaiTime.getMinutes(); // เพิ่มการเช็คนาที
     const todayStr = thaiTime.toISOString().split('T')[0];
-
     const isWeekend = thaiTime.getDay() === 0 || thaiTime.getDay() === 6;
 
     // 1. เตรียมข้อมูล
@@ -170,14 +167,9 @@ export async function GET(req: Request) {
 
     const notifications = [];
 
-    // 2. ดึงข่าว
+    // 2. ดึงข่าว (เช็คทุกรอบเผื่อมีข่าวด่วนจริงๆ)
     let newsItem: NewsItem | null = null;
-    
-    const isMorningNews = thaiHour >= 7 && thaiHour <= 9;
-    const isEveningNews = thaiHour >= 19 && thaiHour <= 21;
-    const shouldCheckNews = Math.random() < 0.4 || isMorningNews || isEveningNews;
-    
-    if (!isWeekend && shouldCheckNews) {
+    if (!isWeekend) {
         newsItem = await getSmartNews();
     }
 
@@ -197,83 +189,68 @@ export async function GET(req: Request) {
       let body = '';
       let url = '/dashboard';
 
-      // --- LOGIC ---
-      if (isWeekend) {
-        const msg = getRandom(WEEKEND_MESSAGES);
-        title = msg.title;
-        body = msg.body;
-        url = msg.url;
-      } 
-      else {
-        // [วันธรรมดา]
-
-        // A. ข่าวสำคัญ
-        if (newsItem && newsItem.isHot) {
-           title = `🔥 ข่าวด่วน! ถึงคุณ ${username}`;
-           body = newsItem.title;
-           url = '/news';
-        }
-        // B. เช็คตามช่วงเวลา (Session)
-        // 🇦🇺 Sydney: 05:00 - 06:00
-        else if (thaiHour === 5) { 
-           const msg = getRandom(SESSION_MESSAGES.sydney);
-           title = msg.title;
-           body = msg.body;
-           url = msg.url;
-        }
-        // 🇯🇵 Tokyo: 06:00 - 14:00
-        else if (thaiHour >= 6 && thaiHour < 14) { 
-           const msg = getRandom(SESSION_MESSAGES.tokyo);
-           title = msg.title;
-           body = msg.body;
-           url = msg.url;
-        }
-        // 🇬🇧 London: 14:00 - 19:00
-        else if (thaiHour >= 14 && thaiHour < 19) { 
-           const msg = getRandom(SESSION_MESSAGES.london);
-           title = msg.title;
-           body = msg.body;
-           url = msg.url;
-        }
-        // 🇺🇸 New York: 19:00 - 04:00 (ข้ามวัน)
-        else if (thaiHour >= 19 || thaiHour < 4) {
-           const msg = getRandom(SESSION_MESSAGES.newyork);
-           title = msg.title;
-           body = msg.body;
-           url = msg.url;
-        }
-        // C. Pre-Trade (ช่วงเวลาอื่นที่ว่างอยู่)
-        else if (!hasTradedToday) {
-           if (Math.random() < 0.3) {
-             const msg = getRandom(CALCULATOR_MESSAGES);
-             title = msg.title;
-             body = msg.body;
-             url = msg.url;
-           } 
-           else if (totalTrades < 5) {
-             title = `🔔 มือใหม่ ${username} สู้ๆ!`;
-             body = getRandom(USER_MESSAGES.newbie);
-             url = '/'; 
-           } else if (totalTrades < 50) {
-             title = `📉 สวัสดีคุณ ${username}`;
-             body = getRandom(USER_MESSAGES.intermediate);
-             url = '/dashboard';
-           } else {
-             title = `👑 Pro Trader ${username}`;
-             body = getRandom(USER_MESSAGES.pro);
-             url = '/dashboard';
-           }
-        }
-        // D. Post-Trade
-        else {
-           if (Math.random() < 0.3) {
-             title = `🌟 เยี่ยมมากคุณ ${username}!`;
-             body = getRandom(USER_MESSAGES.post_trade);
-             url = '/dashboard';
-           }
-        }
+      // --- LOGIC การแจ้งเตือน (ปรับใหม่) ---
+      
+      // A. ข่าวด่วน (Priority สูงสุด) -> แจ้งทันทีถ้าเจอข่าวใหม่ในรอบ 20 นาที
+      if (newsItem && newsItem.isHot) {
+         title = `🔥 ข่าวด่วน! ถึงคุณ ${username}`;
+         body = newsItem.title;
+         url = '/news';
+      }
+      
+      // B. เปิดตลาด (Session Open) -> แจ้งแค่ "5 นาทีแรก" ของชั่วโมงนั้น
+      // เช่น 14:00 - 14:05 แจ้งเตือนรอบเดียว พอ 14:10 จะไม่แจ้งแล้ว
+      else if (!isWeekend && thaiMinute < 5) {
+         if (thaiHour === 5) { 
+             const msg = getRandom(SESSION_MESSAGES.sydney);
+             title = msg.title; body = msg.body; url = msg.url;
+         }
+         else if (thaiHour === 6) { 
+             const msg = getRandom(SESSION_MESSAGES.tokyo);
+             title = msg.title; body = msg.body; url = msg.url;
+         }
+         else if (thaiHour === 14) { 
+             const msg = getRandom(SESSION_MESSAGES.london);
+             title = msg.title; body = msg.body; url = msg.url;
+         }
+         else if (thaiHour === 19) { 
+             const msg = getRandom(SESSION_MESSAGES.newyork);
+             title = msg.title; body = msg.body; url = msg.url;
+         }
       }
 
+      // C. ข้อความทักทาย/เตือนสติ (General) -> สุ่มแจ้งตอน "ครึ่งชั่วโมง" (นาทีที่ 30-35)
+      // เพื่อไม่ให้ชนกับเวลาเปิดตลาด และไม่ให้ถี่เกินไป (ชั่วโมงละครั้งพอ)
+      else if (!isWeekend && thaiMinute >= 30 && thaiMinute < 35 && !hasTradedToday) {
+         // สุ่มว่าจะส่งไหม (50/50) จะได้ไม่ดูเป็นบอทเกินไป
+         if (Math.random() < 0.5) {
+             if (Math.random() < 0.3) {
+                 const msg = getRandom(CALCULATOR_MESSAGES);
+                 title = msg.title; body = msg.body; url = msg.url;
+             } 
+             else if (totalTrades < 5) {
+                 title = `🔔 มือใหม่ ${username} สู้ๆ!`;
+                 body = getRandom(USER_MESSAGES.newbie);
+                 url = '/'; 
+             } else if (totalTrades < 50) {
+                 title = `📉 สวัสดีคุณ ${username}`;
+                 body = getRandom(USER_MESSAGES.intermediate);
+                 url = '/dashboard';
+             } else {
+                 title = `👑 Pro Trader ${username}`;
+                 body = getRandom(USER_MESSAGES.pro);
+                 url = '/dashboard';
+             }
+         }
+      }
+      
+      // D. วันหยุด (Weekend) -> แจ้งรอบเดียวตอน 10 โมงเช้า
+      else if (isWeekend && thaiHour === 10 && thaiMinute < 5) {
+          const msg = getRandom(WEEKEND_MESSAGES);
+          title = msg.title; body = msg.body; url = msg.url;
+      }
+
+      // ส่ง Notification เฉพาะเมื่อมี title (ตรงเงื่อนไข)
       if (title) {
         notifications.push(
           webpush.sendNotification(subscription as any, JSON.stringify({ title, body, url }))
