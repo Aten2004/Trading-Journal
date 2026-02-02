@@ -97,11 +97,9 @@ async function getSmartNews(): Promise<NewsItem | null> {
       sources.map(url => fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, next: { revalidate: 60 } }).then(res => res.text()))
     );
 
-    // ✅ Fix: ระบุ Type ชัดเจน (บรรทัดที่เคย Error)
     let hotNews: NewsItem | null = null;
     let maxTimestamp = 0;
     
-    // คำสำคัญที่น่าสนใจ (High Impact Keywords)
     const keywords = ['เฟด', 'Fed', 'ดอกเบี้ย', 'เงินเฟ้อ', 'CPI', 'จ้างงาน', 'Non-Farm', 'สงคราม', 'ทองคำพุ่ง', 'ทองคำร่วง', 'GDP'];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
 
@@ -113,13 +111,11 @@ async function getSmartNews(): Promise<NewsItem | null> {
         
         if (dateMatch) {
           const timestamp = new Date(dateMatch[1]).getTime();
-          // เอาข่าวภายใน 2 ชม. ล่าสุดเท่านั้น เพื่อความสดใหม่
           const isFresh = (Date.now() - timestamp) < (2 * 60 * 60 * 1000); 
 
           if (isFresh && timestamp > maxTimestamp) {
             const titleMatch = itemContent.match(/<title>(.*?)<\/title>/) || itemContent.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
             let title = titleMatch ? titleMatch[1].replace('<![CDATA[', '').replace(']]>', '') : '';
-
             const isHot = keywords.some(kw => title.includes(kw));
             
             if (title && isHot) {
@@ -144,11 +140,25 @@ const getRandom = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
 
 export async function GET(req: Request) {
   try {
-    // ✅ FIX 1: เพิ่ม Security Check (ต้องมีรหัสผ่านจาก cron-job.org ถึงจะทำงาน)
+    // Check Auth
     const authHeader = req.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return new Response('Unauthorized', { status: 401 });
     }
+
+    // -------------------------------------------------------------
+    // ✅ FIX TIMEZONE: คำนวณเวลาไทยแบบ Manual (UTC+7) ชัวร์สุด
+    // -------------------------------------------------------------
+    const now = new Date();
+    // UTC Timestamp + 7 Hours
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const thaiTime = new Date(utc + (3600000 * 7));
+
+    const thaiHour = thaiTime.getHours(); 
+    // วันที่ไทยสำหรับเช็คว่าเทรดไปหรือยัง (YYYY-MM-DD)
+    const todayStr = thaiTime.toISOString().split('T')[0];
+
+    const isWeekend = thaiTime.getDay() === 0 || thaiTime.getDay() === 6;
 
     // 1. เตรียมข้อมูล
     const subSheet = await getGoogleSheet('Subscriptions');
@@ -160,25 +170,11 @@ export async function GET(req: Request) {
 
     const notifications = [];
 
-    const now = new Date();
-    const thaiTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
-    
-    const thaiHour = thaiTime.getHours();
-    const year = thaiTime.getFullYear();
-    const month = String(thaiTime.getMonth() + 1).padStart(2, '0');
-    const day = String(thaiTime.getDate()).padStart(2, '0');
-    const todayStr = `${year}-${month}-${day}`;
-    
-    const isWeekend = thaiTime.getDay() === 0 || thaiTime.getDay() === 6;
-
     // 2. ดึงข่าว
     let newsItem: NewsItem | null = null;
     
-    // ✅ FIX 2: เพิ่มเงื่อนไขเช็คข่าวตอนเช้า (07:00-09:00)
     const isMorningNews = thaiHour >= 7 && thaiHour <= 9;
     const isEveningNews = thaiHour >= 19 && thaiHour <= 21;
-    
-    // เช็คข่าวเมื่อ: สุ่มโดน 40% หรือ เป็นช่วงเวลาข่าวสำคัญ (เช้า/ค่ำ)
     const shouldCheckNews = Math.random() < 0.4 || isMorningNews || isEveningNews;
     
     if (!isWeekend && shouldCheckNews) {
@@ -217,23 +213,22 @@ export async function GET(req: Request) {
            body = newsItem.title;
            url = '/news';
         }
-
-        // B. เช็คตามช่วงเวลา (Session) โดยยึดตามเวลาไทย (UTC+7)
-        // 🇦🇺 Sydney: 05:00 - 06:00 (ก่อน Tokyo มา)
+        // B. เช็คตามช่วงเวลา (Session)
+        // 🇦🇺 Sydney: 05:00 - 06:00
         else if (thaiHour === 5) { 
            const msg = getRandom(SESSION_MESSAGES.sydney);
            title = msg.title;
            body = msg.body;
            url = msg.url;
         }
-        // 🇯🇵 Tokyo: 06:00 - 14:00 (รันยาวจน London มา)
+        // 🇯🇵 Tokyo: 06:00 - 14:00
         else if (thaiHour >= 6 && thaiHour < 14) { 
            const msg = getRandom(SESSION_MESSAGES.tokyo);
            title = msg.title;
            body = msg.body;
            url = msg.url;
         }
-        // 🇬🇧 London: 14:00 - 19:00 (รันยาวจน New York มา)
+        // 🇬🇧 London: 14:00 - 19:00
         else if (thaiHour >= 14 && thaiHour < 19) { 
            const msg = getRandom(SESSION_MESSAGES.london);
            title = msg.title;
@@ -247,8 +242,7 @@ export async function GET(req: Request) {
            body = msg.body;
            url = msg.url;
         }
-
-        // C. Pre-Trade (ช่วงเวลาอื่น)
+        // C. Pre-Trade (ช่วงเวลาอื่นที่ว่างอยู่)
         else if (!hasTradedToday) {
            if (Math.random() < 0.3) {
              const msg = getRandom(CALCULATOR_MESSAGES);
